@@ -35,7 +35,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.click_points_mode = []                           # SAM提示点类型列表
         self.prompt_points = []                               # SAM提示点显示对象列表
         self.masks: np.ndarray = None                         # SAM生成的蒙版
-        self.mask_alpha = 0.5                                 # 蒙版透明度
+        self.mask_alpha = 0.8                                 # 蒙版透明度
         self.top_layer = 1                                    # 顶层索引
 
         # 辅助线
