@@ -11,47 +11,62 @@ import shapely
 
 
 class AnnotationScene(QtWidgets.QGraphicsScene):
+    """标注场景类，用于处理图像标注的主要逻辑"""
     def __init__(self, mainwindow):
         super(AnnotationScene, self).__init__()
         self.mainwindow = mainwindow
-        self.image_item: QtWidgets.QGraphicsPixmapItem = None
-        self.mask_item: QtWidgets.QGraphicsPixmapItem = None
-        self.image_data = None
-        self.current_graph: Polygon = None
-        self.current_sam_rect: Rect = None
-        self.current_line: Line = None
-        self.mode = STATUSMode.VIEW
-        self.click = CLICKMode.POSITIVE
-        self.draw_mode = DRAWMode.SEGMENTANYTHING           # 默认使用segment anything进行快速标注
-        self.contour_mode = CONTOURMode.SAVE_EXTERNAL       # 默认SAM只保留外轮廓
-        self.click_points = []                              # SAM point prompt
-        self.click_points_mode = []                         # SAM point prompt
-        self.prompt_points = []
-        self.masks: np.ndarray = None
-        self.mask_alpha = 0.5
-        self.top_layer = 1
+        self.image_item: QtWidgets.QGraphicsPixmapItem = None  # 图像显示项
+        self.mask_item: QtWidgets.QGraphicsPixmapItem = None   # 蒙版显示项
+        self.image_data = None                                 # 图像数据
+        
+        # 当前绘制的图形对象
+        self.current_graph: Polygon = None                     # 当前正在绘制的多边形
+        self.current_sam_rect: Rect = None                     # SAM框选区域
+        self.current_line: Line = None                         # 当前绘制的线段
+        
+        # 模式设置
+        self.mode = STATUSMode.VIEW                           # 当前模式(查看/创建/编辑)
+        self.click = CLICKMode.POSITIVE                       # 点击模式(正例/负例)
+        self.draw_mode = DRAWMode.SEGMENTANYTHING             # 绘制模式(SAM/多边形等)
+        self.contour_mode = CONTOURMode.SAVE_EXTERNAL         # 轮廓模式(保存外轮廓/全部等)
+        
+        # SAM相关
+        self.click_points = []                                # SAM提示点坐标列表
+        self.click_points_mode = []                           # SAM提示点类型列表
+        self.prompt_points = []                               # SAM提示点显示对象列表
+        self.masks: np.ndarray = None                         # SAM生成的蒙版
+        self.mask_alpha = 0.5                                 # 蒙版透明度
+        self.top_layer = 1                                    # 顶层索引
 
-        self.guide_line_x: QtWidgets.QGraphicsLineItem = None
-        self.guide_line_y: QtWidgets.QGraphicsLineItem = None
+        # 辅助线
+        self.guide_line_x: QtWidgets.QGraphicsLineItem = None # 水平辅助线
+        self.guide_line_y: QtWidgets.QGraphicsLineItem = None # 垂直辅助线
 
-        # 拖动鼠标描点
-        self.last_draw_time = time.time()
-        self.draw_interval = 0.15
-        self.pressd = False
+        # 拖动绘制相关
+        self.last_draw_time = time.time()                     # 上次绘制时间
+        self.draw_interval = 0.15                             # 绘制间隔(秒)
+        self.pressd = False                                   # 鼠标按下状态
 
-        #
-        self.selected_polygons_list = list()
+        # 多边形选择
+        self.selected_polygons_list = list()                  # 已选择的多边形列表
 
-        self.repaint_start_vertex = None
-        self.repaint_end_vertex = None
-        self.hovered_vertex:Vertex = None
+        # 重绘相关
+        self.repaint_start_vertex = None                      # 重绘起始顶点
+        self.repaint_end_vertex = None                        # 重绘结束顶点
+        self.hovered_vertex:Vertex = None                     # 当前悬停的顶点
 
     def load_image(self, image_path: str):
+        """加载图像
+        
+        Args:
+            image_path: 图像文件路径
+        """
         self.clear()
         if self.mainwindow.use_segment_anything:
             self.mainwindow.segany.reset_image()
 
-        image_data = cv2.imread(image_path)
+        # image_data = cv2.imread(image_path)
+        image_data = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
         self.image_data = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGB)
 
         self.image_item = QtWidgets.QGraphicsPixmapItem()
@@ -74,6 +89,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.current_graph = None
 
     def change_mode_to_create(self):
+        """切换到创建模式"""
         if self.image_item is None:
             return
         self.mode = STATUSMode.CREATE
@@ -113,6 +129,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         """)
 
     def change_mode_to_view(self):
+        """切换到查看模式"""
         self.mode = STATUSMode.VIEW
         if self.image_item is not None:
             self.image_item.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
@@ -149,6 +166,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         """)
 
     def change_mode_to_edit(self):
+        """切换到编辑模式"""
         self.mode = STATUSMode.EDIT
         if self.image_item is not None:
             self.image_item.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.CrossCursor))
@@ -185,6 +203,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         """)
 
     def change_mode_to_repaint(self):
+        """切换到重绘模式"""
         self.mode = STATUSMode.REPAINT
         self.repaint_start_vertex = None
         self.repaint_end_vertex = None
@@ -562,6 +581,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
 
     # 感谢[XieDeWu](https://github.com/XieDeWu)提的有关交、并、差、异或的[建议](https://github.com/yatengLG/ISAT_with_segment_anything/issues/167)。
     def polygons_union(self):
+        """对选中的多边形执行并集操作"""
         if len(self.selected_polygons_list) == 2:
             index = self.mainwindow.polygons.index(self.selected_polygons_list[0])
 
@@ -606,6 +626,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                 self.mainwindow.annos_dock_widget.update_listwidget()
 
     def polygons_difference(self):
+        """对选中的多边形执行差集操作"""
         if len(self.selected_polygons_list) == 2:
             index = self.mainwindow.polygons.index(self.selected_polygons_list[0])
 
@@ -661,6 +682,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
             self.mainwindow.annos_dock_widget.update_listwidget()
 
     def polygons_intersection(self):
+        """对选中的多边形执行交集操作"""
         if len(self.selected_polygons_list) == 2:
             index = self.mainwindow.polygons.index(self.selected_polygons_list[0])
 
@@ -716,6 +738,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
             self.mainwindow.annos_dock_widget.update_listwidget()
 
     def polygons_symmetric_difference(self):
+        """对选中的多边形执行对称差集操作"""
         if len(self.selected_polygons_list) == 2:
             index = self.mainwindow.polygons.index(self.selected_polygons_list[0])
 
@@ -771,6 +794,12 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
             self.mainwindow.annos_dock_widget.update_listwidget()
 
     def mousePressEvent(self, event: 'QtWidgets.QGraphicsSceneMouseEvent'):
+        """鼠标按下事件处理
+        
+        处理不同模式下的鼠标点击操作:
+        - 创建模式: 添加点/提示点
+        - 重绘模式: 开始/结束重绘
+        """
         sceneX, sceneY = event.scenePos().x(), event.scenePos().y()
         sceneX = 0 if sceneX < 0 else sceneX
         sceneX = self.width() - 1 if sceneX > self.width() - 1 else sceneX
@@ -895,6 +924,14 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         super(AnnotationScene, self).mouseReleaseEvent(event)
 
     def mouseMoveEvent(self, event: 'QtWidgets.QGraphicsSceneMouseEvent'):
+        """鼠标移动事件处理
+        
+        处理:
+        - 辅助线更新
+        - 坐标显示
+        - 图形绘制更新
+        - 拖动绘制
+        """
         # 辅助线
         if self.guide_line_x is not None and self.guide_line_y is not None:
             if self.guide_line_x in self.items():
@@ -981,6 +1018,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         super(AnnotationScene, self).mouseMoveEvent(event)
 
     def update_mask(self):
+        """更新SAM生成的蒙版显示"""
         if not self.mainwindow.use_segment_anything:
             return
         if self.image_data is None:

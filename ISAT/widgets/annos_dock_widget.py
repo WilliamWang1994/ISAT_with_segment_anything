@@ -7,16 +7,20 @@ import functools
 import re
 
 class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
+    """标注停靠窗口部件类"""
     def __init__(self, mainwindow):
         super(AnnosDockWidget, self).__init__()
         self.setupUi(self)
         self.mainwindow = mainwindow
+        # 多边形项目字典，用于存储多边形对象和对应的列表项
         self.polygon_item_dict = {}
 
+        # 连接列表项选择变化信号到设置多边形选中状态的槽
         self.listWidget.itemSelectionChanged.connect(self.set_polygon_selected)
+        # 连接可见性复选框状态变化信号到设置所有多边形可见性的槽
         self.checkBox_visible.stateChanged.connect(self.set_all_polygon_visible)
 
-        # addded group view
+        # 分组视图相关连接
         self.comboBox_group_select.currentIndexChanged.connect(self.set_group_polygon_visible)
         self.button_next_group.clicked.connect(self.go_to_next_group)
         self.button_prev_group.clicked.connect(self.go_to_prev_group)
@@ -29,6 +33,14 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         self.mainwindow.right_button_menu.exec_(self.listWidget.mapToGlobal(point))
 
     def generate_item_and_itemwidget(self, polygon):
+        """生成列表项和对应的部件
+        
+        Args:
+            polygon: 多边形对象
+            
+        Returns:
+            tuple: (列表项, 列表项部件)
+        """
         color = self.mainwindow.category_color_dict.get(polygon.category, '#000000')
         item = QtWidgets.QListWidgetItem()
         item.setSizeHint(QtCore.QSize(200, 30))
@@ -69,6 +81,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         return item, item_widget
 
     def update_listwidget(self):
+        """更新列表部件的内容"""
         current_group_id = self.comboBox_group_select.currentText()
         self.listWidget.clear()
         self.polygon_item_dict.clear()
@@ -124,6 +137,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
                 item.setSelected(False)
 
     def set_polygon_selected(self):
+        """设置多边形的选中状态"""
         items = self.listWidget.selectedItems()
         have_selected = True if items else False
         if have_selected:
@@ -154,11 +168,21 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
                     polygon.setSelected(False)
 
     def set_polygon_show(self, polygon):
+        """设置单个多边形的可见性
+        
+        Args:
+            polygon: 要设置可见性的多边形对象
+        """
         for vertex in polygon.vertexs:
             vertex.setVisible(self.sender().checkState())
         polygon.setVisible(self.sender().checkState())
 
     def set_all_polygon_visible(self, visible:bool=None):
+        """设置所有多边形的可见性
+        
+        Args:
+            visible: 可见性状态，None时使用复选框状态
+        """
         visible = self.checkBox_visible.isChecked() if visible is None else visible
         for index in range(self.listWidget.count()):
             item = self.listWidget.item(index)
@@ -168,6 +192,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         self.checkBox_visible.setChecked(visible)
 
     def set_group_polygon_visible(self):
+        """设置分组多边形的可见性"""
         selected_group = self.comboBox_group_select.currentText()
 
         for polygon, item in self.polygon_item_dict.items():
@@ -181,6 +206,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
                 check_box.setChecked(False)
 
     def zoom_to_group(self):
+        """缩放视图以显示当前选中分组的所有多边形"""
         selected_group = self.comboBox_group_select.currentText()
         if selected_group == '':
             return
@@ -200,6 +226,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         self.mainwindow.view.fitInView(bounding_rect, QtCore.Qt.KeepAspectRatio)
 
     def go_to_next_group(self):
+        """切换到下一个分组"""
         current_index = self.comboBox_group_select.currentIndex()
         max_index = self.comboBox_group_select.count() - 1
         if current_index < max_index:
@@ -223,6 +250,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
                 pass
 
     def go_to_prev_group(self):
+        """切换到上一个分组"""
         current_index = self.comboBox_group_select.currentIndex()
         if current_index > 0:
             self.comboBox_group_select.setCurrentIndex(current_index - 1)

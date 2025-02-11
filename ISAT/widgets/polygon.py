@@ -16,7 +16,9 @@ class PromptPoint(QtWidgets.QGraphicsPathItem):
         self.painterpath.addEllipse(
             QtCore.QRectF(-1, -1, 2, 2))
         self.setPath(self.painterpath)
+        # 设置填充颜色
         self.setBrush(self.color)
+        # 设置边框颜色和宽度(3像素)
         self.setPen(QtGui.QPen(self.color, 3))
         self.setZValue(1e5)
 
