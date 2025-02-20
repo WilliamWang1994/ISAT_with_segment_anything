@@ -39,10 +39,11 @@ from skimage.draw.draw import polygon
 
 
 class QtBoxStyleProgressBar(QtWidgets.QProgressBar):
-    # copy from qtbox
+    """自定义进度条样式类"""
     def __init__(self):
         super(QtBoxStyleProgressBar, self).__init__()
         self.setTextVisible(False)
+        # 设置进度条样式
         self.setStyleSheet("""
         QProgressBar {
             border: 2px solid #888783;
@@ -59,6 +60,14 @@ class QtBoxStyleProgressBar(QtWidgets.QProgressBar):
 
 
 def calculate_area(points):
+    """计算多边形面积
+    
+    Args:
+        points: 多边形顶点列表
+        
+    Returns:
+        float: 多边形面积
+    """
     area = 0
     num_points = len(points)
     for i in range(num_points):
@@ -70,22 +79,37 @@ def calculate_area(points):
 
 
 class SegAnyThread(QThread):
+    """SAM模型推理线程类"""
+    # 发送标签信号(图像索引, 状态, 消息)
     tag = pyqtSignal(int, int, str)
 
     def __init__(self, mainwindow):
+        """初始化SAM推理线程
+        
+        Args:
+            mainwindow: 主窗口对象
+        """
         super(SegAnyThread, self).__init__()
         self.mainwindow = mainwindow
-        self.results_dict = {}
-        self.index = None
+        self.results_dict = {}  # 存储特征图结果
+        self.index = None       # 当前处理的图像索引
 
     @torch.no_grad()
     def sam_encoder(self, image):
+        """SAM模型编码器推理
+        
+        Args:
+            image: 输入图像
+            
+        Returns:
+            tuple: (特征图, 原始尺寸, 输入尺寸)
+        """
         torch.cuda.empty_cache()
         with torch.inference_mode(), torch.autocast(self.mainwindow.segany.device,
                                                     dtype=self.mainwindow.segany.model_dtype):
-
-            # sam2 函数命名等发生很大改变，为了适应后续基于sam2的各类模型，这里分开处理sam1和sam2模型
+            # sam2和sam1的处理逻辑不同
             if 'sam2' in self.mainwindow.segany.model_type:
+                # SAM2模型处理逻辑
                 _orig_hw = tuple([image.shape[:2]])
                 input_image = self.mainwindow.segany.predictor_with_point_prompt._transforms(image)
                 input_image = input_image[None, ...].to(self.mainwindow.segany.predictor_with_point_prompt.device)
@@ -100,6 +124,7 @@ class SegAnyThread(QThread):
                 _features = {"image_embed": feats[-1], "high_res_feats": tuple(feats[:-1])}
                 return _features, _orig_hw, _orig_hw
             else:
+                # SAM1模型处理逻辑
                 input_image = self.mainwindow.segany.predictor_with_point_prompt.transform.apply_image(image)
                 input_image_torch = torch.as_tensor(input_image, device=self.mainwindow.segany.predictor_with_point_prompt.device)
                 input_image_torch = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
@@ -112,49 +137,53 @@ class SegAnyThread(QThread):
                 return features, original_size, input_size
 
     def run(self):
+        """线程运行函数,处理图像特征提取"""
         if self.index is not None:
-
-            # 需要缓存特征的图像索引，可以自行更改缓存策略
+            # 确定需要缓存特征的图像索引(当前图像及其前后图像)
             indexs = [self.index]
             if self.index + 1 < len(self.mainwindow.files_list):
                 indexs += [self.index + 1]
             if self.index - 1 > -1:
                 indexs += [self.index - 1]
 
-            # 先删除不需要的旧特征
+            # 删除不需要的旧特征
             features_ks = list(self.results_dict.keys())
             for k in features_ks:
                 if k not in indexs:
                     try:
                         del self.results_dict[k]
-                        self.tag.emit(k, 0, '')  # 删除
+                        self.tag.emit(k, 0, '')  # 发送删除信号
                     except:
                         pass
 
+            # 处理需要缓存的图像
             for index in indexs:
                 if index not in self.results_dict:
-                    self.tag.emit(index, 2, '')    # 进行
+                    self.tag.emit(index, 2, '')    # 发送处理中信号
 
+                    # 读取并处理图像
                     image_path = os.path.join(self.mainwindow.image_root, self.mainwindow.files_list[index])
                     self.results_dict[index] = {}
                     image_data = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8),cv2.IMREAD_COLOR)
                     image_data = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGB)
+                    
                     try:
+                        # 提取特征
                         features, original_size, input_size = self.sam_encoder(image_data)
                     except Exception as e:
-                        self.tag.emit(index, 3, '{}'.format(e))  # error
+                        self.tag.emit(index, 3, '{}'.format(e))  # 发送错误信号
                         del self.results_dict[index]
                         continue
 
+                    # 保存特征结果
                     self.results_dict[index]['features'] = features
                     self.results_dict[index]['original_size'] = original_size
                     self.results_dict[index]['input_size'] = input_size
 
-                    self.tag.emit(index, 1, '')    # 完成
-
+                    self.tag.emit(index, 1, '')    # 发送完成信号
                     torch.cuda.empty_cache()
                 else:
-                    self.tag.emit(index, 1, '')
+                    self.tag.emit(index, 1, '')    # 已有特征,直接发送完成信号
 
 
 class SegAnyVideoThread(QThread):
@@ -895,7 +924,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # 类别
         self.cfg.update(load_config(self.config_file))
         label_dict_list = self.cfg.get('label', [])
-        if len(label_dict_list) < 1 or label_dict_list[0].get('name', 'unknow') != '__background__':
+        # if len(label_dict_list) < 1 or label_dict_list[0].get('name', 'unknow') != '__background__':
+        #     label_dict_list.insert(0, {'color': '#000000', 'name': '__background__'})
+
+        if len(label_dict_list) < 1:
             label_dict_list.insert(0, {'color': '#000000', 'name': '__background__'})
 
         d = {}

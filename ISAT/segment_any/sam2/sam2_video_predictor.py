@@ -6,14 +6,11 @@
 
 import warnings
 from collections import OrderedDict
-
 import torch
-
 from tqdm import tqdm
-
 from ISAT.segment_any.sam2.modeling.sam2_base import NO_OBJ_SCORE, SAM2Base
 from ISAT.segment_any.sam2.utils.misc import concat_points, fill_holes_in_mask_scores, load_video_frames
-
+from ISAT.segment_any.sam2.build_sam import build_sam2_video_predictor_hf
 
 class SAM2VideoPredictor(SAM2Base):
     """The predictor class to handle user interactions and manage inference states."""
@@ -122,7 +119,6 @@ class SAM2VideoPredictor(SAM2Base):
         Returns:
           (SAM2VideoPredictor): The loaded model.
         """
-        from ISAT.segment_any.sam2.build_sam import build_sam2_video_predictor_hf
 
         sam_model = build_sam2_video_predictor_hf(model_id, **kwargs)
         return sam_model

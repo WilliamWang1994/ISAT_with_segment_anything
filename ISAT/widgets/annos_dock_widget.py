@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Author  : LG
-
+import numpy as np
 from PyQt5 import QtWidgets, QtCore, QtGui
 from ISAT.ui.anno_dock import Ui_Form
 import functools
@@ -22,6 +22,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
 
         # 分组视图相关连接
         self.comboBox_group_select.currentIndexChanged.connect(self.set_group_polygon_visible)
+
         self.button_next_group.clicked.connect(self.go_to_next_group)
         self.button_prev_group.clicked.connect(self.go_to_prev_group)
 
@@ -60,12 +61,27 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         layout.addWidget(label_color)
 
         category = QtWidgets.QLabel(polygon.category)
+        category.setFixedWidth(120)
+        width = int(polygon.rxmax - polygon.rxmin)
+        height = int(polygon.rymax - polygon.rymin)
+
+        w_width = QtWidgets.QLabel('w:{}'.format(width))
+        w_width.setFixedWidth(50)
+        w_height = QtWidgets.QLabel('h:{}'.format(height))
+        w_height.setFixedWidth(50)
+        area, perimeter = polygon.calculate_area_perimeter()
+        circularity = (4*np.pi*area) / (perimeter**2)
+        w_circularity = QtWidgets.QLabel('圆度:{:.2f}'.format(circularity))
+        w_circularity.setFixedWidth(80)
 
         group = QtWidgets.QLabel('{}'.format(polygon.group))
-        group.setFixedWidth(50)
-        note = QtWidgets.QLabel('{}'.format(polygon.note))
-        note.setToolTip(polygon.note)
-        note.setFixedWidth(46)
+        group.setFixedWidth(40)
+
+        # note = QtWidgets.QLabel('{}'.format(polygon.note))
+        # note.setToolTip(polygon.note)
+        # note.setFixedWidth(46)
+
+
 
         label_iscrowd = QtWidgets.QLabel()
         label_iscrowd.setFixedWidth(3)
@@ -74,8 +90,11 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
 
         layout.addWidget(category)
         layout.addWidget(group)
-        layout.addWidget(note)
-        layout.addWidget(label_iscrowd)
+        layout.addWidget(w_width)
+        layout.addWidget(w_height)
+        layout.addWidget(w_circularity)
+        # layout.addWidget(note)
+        # layout.addWidget(label_iscrowd)
 
         item_widget.setLayout(layout)
         return item, item_widget
@@ -96,15 +115,19 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         if self.mainwindow.load_finished:
             self.mainwindow.set_saved_state(False)
 
-        unique_groups = {polygon.group for polygon in self.mainwindow.polygons}
+        # unique_groups = {polygon.group for polygon in self.mainwindow.polygons}
+        category_list = self.mainwindow.cfg['label']
         self.comboBox_group_select.clear()
         self.comboBox_group_select.addItem('All')  # add an option to view all groups
-        self.comboBox_group_select.addItems(sorted([str(item) for item in unique_groups],
-            key=lambda s: [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', s)]))
-        if any(current_group_id == self.comboBox_group_select.itemText(i) for i in range(self.comboBox_group_select.count())):
-            self.comboBox_group_select.setCurrentText(current_group_id)
-        else:
-            self.comboBox_group_select.setCurrentIndex(0)
+        # self.comboBox_group_select.addItems(sorted([str(item) for item in unique_groups],
+        #     key=lambda s: [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', s)]))
+        self.comboBox_group_select.addItems([item['name'] for item in category_list])
+
+
+        # if any(current_group_id == self.comboBox_group_select.itemText(i) for i in range(self.comboBox_group_select.count())):
+        #     self.comboBox_group_select.setCurrentText(current_group_id)
+        # else:
+        #     self.comboBox_group_select.setCurrentIndex(0)
 
     def listwidget_add_polygon(self, polygon):
         item, item_widget = self.generate_item_and_itemwidget(polygon)
@@ -193,14 +216,15 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
 
     def set_group_polygon_visible(self):
         """设置分组多边形的可见性"""
-        selected_group = self.comboBox_group_select.currentText()
+        # selected_group = self.comboBox_group_select.currentText()
+        selected_category = self.comboBox_group_select.currentText()
 
         for polygon, item in self.polygon_item_dict.items():
             widget = self.listWidget.itemWidget(item)
             check_box = widget.findChild(QtWidgets.QCheckBox, 'check_box')
-            if selected_group == '':
+            if selected_category == '':
                 return
-            if selected_group == 'All' or polygon.group == int(selected_group):
+            if selected_category == 'All' or polygon.category == selected_category:
                 check_box.setChecked(True)
             else:
                 check_box.setChecked(False)

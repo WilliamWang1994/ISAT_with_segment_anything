@@ -31,7 +31,7 @@ class Ui_Form(object):
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.comboBox_group_select = QtWidgets.QComboBox(self.widget)
-        self.comboBox_group_select.setMaximumSize(QtCore.QSize(60, 16777215))
+        self.comboBox_group_select.setMaximumSize(QtCore.QSize(200, 16777215))
         self.comboBox_group_select.setObjectName("comboBox_group_select")
         self.horizontalLayout.addWidget(self.comboBox_group_select)
         self.button_prev_group = QtWidgets.QPushButton(self.widget)

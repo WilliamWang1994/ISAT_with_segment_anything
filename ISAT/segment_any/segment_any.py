@@ -4,13 +4,35 @@
 
 import torch
 import numpy as np
-import timm
+# import timm
 import platform
 from PIL import Image
 from collections import OrderedDict
 import os
-from skimage.draw.draw import polygon
+# from skimage.draw.draw import polygon
 from ISAT.segment_any.sam2.utils.misc import AsyncVideoFrameLoader
+from ISAT.segment_any.sam2.build_sam import sam_model_registry as sam2_model_registry
+from ISAT.segment_any.sam2.sam2_image_predictor import SAM2ImagePredictor as Sam2Predictor
+
+from ISAT.segment_any.mobile_sam import sam_model_registry as sam_mobile_model_registry
+from ISAT.segment_any.mobile_sam import SamPredictor as SamMobilePredictor
+
+
+from ISAT.segment_any.edge_sam import sam_model_registry as sam_edge_model_registry
+from ISAT.segment_any.edge_sam import SamPredictor as SamEdgePredictor
+
+
+from ISAT.segment_any.segment_anything_hq import sam_model_registry as samhq_model_registry
+from ISAT.segment_any.segment_anything_hq import SamPredictor as SamhqPredictor
+
+from ISAT.segment_any.segment_anything import sam_model_registry as sam1_model_registry
+from ISAT.segment_any.segment_anything import SamPredictor as Sam1Predictor
+
+from ISAT.segment_any.segment_anything_med2d import sam_model_registry as med2d_model_registry
+from ISAT.segment_any.segment_anything_med2d.predictor_for_isat import Predictor as Med2dPredictor
+
+
+
 
 osplatform = platform.system()
 
@@ -22,19 +44,24 @@ class SegAny:
         self.checkpoint = checkpoint
         self.model_dtype = torch.bfloat16 if use_bfloat16 else torch.float32
         self.model_source = None
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         if 'mobile_sam' in checkpoint:
             # mobile sam
-            from ISAT.segment_any.mobile_sam import sam_model_registry, SamPredictor
+
             self.model_type = "vit_t"
             self.model_source = 'mobile_sam'
+            self.load_sam(checkpoint, sam_mobile_model_registry, SamMobilePredictor)
+
         elif 'edge_sam' in checkpoint:
             # edge_sam
-            from ISAT.segment_any.edge_sam import sam_model_registry, SamPredictor
+
             self.model_type = "edge_sam"
             self.model_source = 'edge_sam'
+            self.load_sam(checkpoint, sam_edge_model_registry, SamEdgePredictor)
+
         elif 'sam_hq_vit' in checkpoint:
             # sam hq
-            from ISAT.segment_any.segment_anything_hq import sam_model_registry, SamPredictor
+
             if 'vit_b' in checkpoint:
                 self.model_type = "vit_b"
             elif 'vit_l' in checkpoint:
@@ -46,22 +73,23 @@ class SegAny:
             else:
                 raise ValueError('The checkpoint named {} is not supported.'.format(checkpoint))
             self.model_source = 'sam_hq'
+            self.load_sam(checkpoint, samhq_model_registry, SamhqPredictor)
 
         elif 'sam_vit' in checkpoint:
             # sam
-            if torch.__version__ > '2.1.1' and osplatform == 'Linux':
-                # 暂时只测试了2.1.1环境下的运行;2.0不确定；1.x不可以
-                # 暂时不使用sam-fast
-                # from ISAT.segment_anything_fast import sam_model_registry as sam_model_registry
-                # from ISAT.segment_anything_fast import SamPredictor
-                # print('segment_anything_fast')
-                from ISAT.segment_any.segment_anything import sam_model_registry, SamPredictor
-                print('segment_anything')
-            else:
-                # windows下，现只支持 2.2.0+dev，且需要其他依赖；等后续正式版本推出后，再进行支持
-                # （如果想提前在windows下试用，可参考https://github.com/pytorch-labs/segment-anything-fast项目进行环境配置）
-                from ISAT.segment_any.segment_anything import sam_model_registry, SamPredictor
-                print('segment_anything')
+            # if torch.__version__ > '2.1.1' and osplatform == 'Linux':
+            #     # 暂时只测试了2.1.1环境下的运行;2.0不确定；1.x不可以
+            #     # 暂时不使用sam-fast
+            #     # from ISAT.segment_anything_fast import sam_model_registry as sam_model_registry
+            #     # from ISAT.segment_anything_fast import SamPredictor
+            #     # print('segment_anything_fast')
+            #     from ISAT.segment_any.segment_anything import sam_model_registry, SamPredictor
+            #     print('segment_anything')
+            # else:
+            #     # windows下，现只支持 2.2.0+dev，且需要其他依赖；等后续正式版本推出后，再进行支持
+            #     # （如果想提前在windows下试用，可参考https://github.com/pytorch-labs/segment-anything-fast项目进行环境配置）
+            #
+            #     print('segment_anything')
             if 'vit_b' in checkpoint:
                 self.model_type = "vit_b"
             elif 'vit_l' in checkpoint:
@@ -71,9 +99,9 @@ class SegAny:
             else:
                 raise ValueError('The checkpoint named {} is not supported.'.format(checkpoint))
             self.model_source = 'sam'
+            self.load_sam(checkpoint, sam1_model_registry, Sam1Predictor)
+
         elif 'sam2' in checkpoint:
-            from ISAT.segment_any.sam2.build_sam import sam_model_registry
-            from ISAT.segment_any.sam2.sam2_image_predictor import SAM2ImagePredictor as SamPredictor
             # sam2
             if 'hiera_tiny' in checkpoint:
                 model_type = "hiera_tiny"
@@ -89,25 +117,24 @@ class SegAny:
             model_source = 'sam2.1' if 'sam2.1' in checkpoint else 'sam2'
             self.model_type = "{}_{}".format(model_source, model_type)
             self.model_source = model_source
+            self.load_sam(checkpoint, sam2_model_registry, Sam2Predictor)
 
         elif 'med2d' in checkpoint:
-            from ISAT.segment_any.segment_anything_med2d import sam_model_registry
-            from ISAT.segment_any.segment_anything_med2d.predictor_for_isat import Predictor as SamPredictor
             self.model_type = "vit_b"
             self.model_source = 'sam_med2d'
+            self.load_sam(checkpoint, med2d_model_registry,Med2dPredictor)
 
+    def load_sam(self, checkpoint,model_registry,predictor):
         torch.cuda.empty_cache()
-
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         print('  - device  : {}'.format(self.device))
         print('  - dtype   : {}'.format(self.model_dtype))
         print('  - loading : {}'.format(checkpoint))
-        sam = sam_model_registry[self.model_type](checkpoint=checkpoint)
+        sam = model_registry[self.model_type](checkpoint=checkpoint)
 
         sam = sam.eval().to(self.model_dtype)
 
         sam.to(device=self.device)
-        self.predictor_with_point_prompt = SamPredictor(sam)
+        self.predictor_with_point_prompt = predictor(sam)
         print('* Init SAM finished *')
         print('--'*20)
         self.image = None
@@ -168,11 +195,10 @@ class SegAnyVideo:
         self.checkpoint = checkpoint
         self.model_dtype = torch.bfloat16 if use_bfloat16 else torch.float32
         self.model_source = None
-
         self.inference_state = {}
 
         if 'sam2' in checkpoint:
-            from ISAT.segment_any.sam2.build_sam import sam_model_registry
+
             # sam2
             if 'hiera_tiny' in checkpoint:
                 model_type = "hiera_tiny"
@@ -196,7 +222,7 @@ class SegAnyVideo:
         print('  - device  : {}'.format(self.device))
         print('  - dtype   : {}'.format(self.model_dtype))
         print('  - loading : {}'.format(checkpoint))
-        self.predictor = sam_model_registry[self.model_type](checkpoint=checkpoint)
+        self.predictor = sam2_model_registry[self.model_type](checkpoint=checkpoint)
         self.predictor = self.predictor.eval().to(self.model_dtype)
         self.predictor.to(device=self.device)
         print('* Init SAM for video finished *')

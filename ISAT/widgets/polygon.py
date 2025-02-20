@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Author  : LG
-
+import numpy as np
 from PyQt5 import QtCore, QtWidgets, QtGui
 from ISAT.annotation import Object
 import typing
@@ -262,15 +262,18 @@ class Polygon(QtWidgets.QGraphicsPolygonItem):
         for vertex in self.vertexs:
             vertex.setColor(color)
 
-    def calculate_area(self):
+    def calculate_area_perimeter(self):
         area = 0
+        perimeter = 0
         num_points = len(self.points)
         for i in range(num_points):
             p1 = self.points[i]
             p2 = self.points[(i + 1) % num_points]
-            d = p1.x() * p2.y() - p2.x() * p1.y()
-            area += d
-        return abs(area) / 2
+            shoelace = p1.x() * p2.y() - p2.x() * p1.y()
+            d = np.sqrt((p2.y() - p1.y())**2+(p2.x() - p1.x())**2)
+            area += shoelace
+            perimeter += d
+        return abs(area) / 2, perimeter
 
     def load_object(self, object):
         segmentation = object.segmentation
@@ -293,7 +296,7 @@ class Polygon(QtWidgets.QGraphicsPolygonItem):
         ymax = ymin + self.boundingRect().height()
 
         object = Object(self.category, group=self.group, segmentation=segmentation,
-                        area=self.calculate_area(), layer=self.zValue(), bbox=(xmin, ymin, xmax, ymax), iscrowd=self.iscrowd, note=self.note)
+                        area=self.calculate_area_perimeter()[0], layer=self.zValue(), bbox=(xmin, ymin, xmax, ymax), iscrowd=self.iscrowd, note=self.note)
         return object
 
 
@@ -344,6 +347,7 @@ class LineVertex(QtWidgets.QGraphicsPathItem):
             self.polygon.movePoint(index, value)
 
         return super(LineVertex, self).itemChange(change, value)
+
 
 class Line(QtWidgets.QGraphicsPathItem):
     def __init__(self):
