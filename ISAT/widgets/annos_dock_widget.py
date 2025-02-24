@@ -71,7 +71,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         w_height.setFixedWidth(50)
         area, perimeter = polygon.calculate_area_perimeter()
         circularity = (4*np.pi*area) / (perimeter**2)
-        w_circularity = QtWidgets.QLabel('圆度:{:.2f}'.format(circularity))
+        w_circularity = QtWidgets.QLabel('r:{:.2f}'.format(circularity))  # roundness
         w_circularity.setFixedWidth(80)
 
         group = QtWidgets.QLabel('{}'.format(polygon.group))
