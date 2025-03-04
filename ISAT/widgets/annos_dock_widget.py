@@ -106,12 +106,13 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         self.polygon_item_dict.clear()
         self.checkBox_visible.setChecked(True)
 
+        self.mainwindow.polygons.reverse()
         for polygon in self.mainwindow.polygons:
             item, item_widget = self.generate_item_and_itemwidget(polygon)
             self.listWidget.addItem(item)
             self.listWidget.setItemWidget(item, item_widget)
             self.polygon_item_dict[polygon] = item
-
+        self.mainwindow.polygons.reverse()
         if self.mainwindow.load_finished:
             self.mainwindow.set_saved_state(False)
 
@@ -131,7 +132,8 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
 
     def listwidget_add_polygon(self, polygon):
         item, item_widget = self.generate_item_and_itemwidget(polygon)
-        self.listWidget.addItem(item)
+        # self.listWidget.addItem(item)
+        self.listWidget.insertItem(0,item)
         self.listWidget.setItemWidget(item, item_widget)
         self.polygon_item_dict[polygon] = item
         self.mainwindow.set_saved_state(False)

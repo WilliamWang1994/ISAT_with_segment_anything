@@ -74,8 +74,11 @@ class CategoriesDockWidget(QtWidgets.QWidget, Ui_Form):
             label_radio.setObjectName('label_radio')
             label_radio.toggled.connect(self.radio_choice)
             btngroup.addButton(label_radio)
-            if name == '__background__':
+            # if name == '__background__':
+            #     label_radio.setChecked(True)
+            if index == 0:
                 label_radio.setChecked(True)
+
 
             layout.addWidget(label_color)
             layout.addWidget(label_radio)
