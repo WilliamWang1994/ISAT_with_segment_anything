@@ -39,8 +39,17 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.top_layer = 1                                    # 顶层索引
 
         # 辅助线
-        self.guide_line_x: QtWidgets.QGraphicsLineItem = None # 水平辅助线
-        self.guide_line_y: QtWidgets.QGraphicsLineItem = None # 垂直辅助线
+        # self.guide_line_x: QtWidgets.QGraphicsLineItem = None # 水平辅助线
+        # self.guide_line_y: QtWidgets.QGraphicsLineItem = None # 垂直辅助线
+
+        self.guide_line_x = None # 水平辅助线
+        self.guide_line_y = None # 垂直辅助线
+
+        self.x_scale_list = []
+        self.y_scale_list = []
+        self.scale = 3 # 刻度线间隔 单位：像素
+        self.scale_count = 1 # 刻度线数量
+        self.scale_length = 1 # 刻度线长度
 
         # 拖动绘制相关
         self.last_draw_time = time.time()                     # 上次绘制时间
@@ -943,6 +952,17 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
             self.guide_line_x = None
             self.guide_line_y = None
 
+        if self.x_scale_list:
+            for i in self.x_scale_list:
+                if i in self.items():
+                    self.removeItem(i)
+            self.x_scale_list.clear()
+        if self.y_scale_list:
+            for i in self.y_scale_list:
+                if i in self.items():
+                    self.removeItem(i)
+            self.y_scale_list.clear()
+
         pos = event.scenePos()
         if pos.x() < 0: pos.setX(0)
         if pos.x() > self.width() - 1: pos.setX(self.width() - 1)
@@ -963,14 +983,49 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
             self.current_line.movePoint(len(self.current_line.points) - 1, pos)
 
         # 辅助线
+
+        # ellipse = QGraphicsEllipseItem(QRectF(300, 50, 100, 100)) # 画圆的方法
+        # self.addItem(ellipse)
         if self.guide_line_x is None and self.width() > 0 and self.height() > 0:
             self.guide_line_x = QtWidgets.QGraphicsLineItem(QtCore.QLineF(pos.x(), 0, pos.x(), self.height()))
             self.guide_line_x.setZValue(1)
             self.addItem(self.guide_line_x)
+            # add scale tick
+            for i in range(self.scale_count):
+                self.x_scale_list.append(QtWidgets.QGraphicsLineItem(QtCore.QLineF(pos.x()-self.scale*(i+1),
+                                                                                   pos.y()+self.scale_length,
+                                                                                   pos.x()-self.scale*(i+1),
+                                                                                   pos.y()-self.scale_length)))
+
+                self.x_scale_list.append(QtWidgets.QGraphicsLineItem(QtCore.QLineF(pos.x()+self.scale*(i+1),
+                                                                                   pos.y()+self.scale_length,
+                                                                                   pos.x()+self.scale*(i+1),
+                                                                                   pos.y()-self.scale_length)))
+                self.x_scale_list[i*2].setZValue(.5)
+                self.x_scale_list[i*2+1].setZValue(.5)
+                self.addItem(self.x_scale_list[i*2])
+                self.addItem(self.x_scale_list[i*2+1])
+
         if self.guide_line_y is None and self.width() > 0 and self.height() > 0:
             self.guide_line_y = QtWidgets.QGraphicsLineItem(QtCore.QLineF(0, pos.y(), self.width(), pos.y()))
             self.guide_line_y.setZValue(1)
             self.addItem(self.guide_line_y)
+            for i in range(self.scale_count):
+                self.y_scale_list.append(QtWidgets.QGraphicsLineItem(QtCore.QLineF(pos.x()+self.scale_length,
+                                                                                   pos.y()-self.scale*(i+1),
+                                                                                   pos.x()-self.scale_length,
+                                                                                   pos.y()-self.scale*(i+1)
+                                                                                   )))
+
+                self.y_scale_list.append(QtWidgets.QGraphicsLineItem(QtCore.QLineF(pos.x()+self.scale_length,
+                                                                                   pos.y()+self.scale*(i+1),
+                                                                                   pos.x() - self.scale_length,
+                                                                                   pos.y() + self.scale * (i + 1)
+                                                                                   )))
+                self.y_scale_list[i*2].setZValue(.5)
+                self.y_scale_list[i*2+1].setZValue(.5)
+                self.addItem(self.y_scale_list[i*2])
+                self.addItem(self.y_scale_list[i*2+1])
 
         # 状态栏,显示当前坐标
         if self.image_data is not None:
@@ -1131,3 +1186,79 @@ class AnnotationView(QtWidgets.QGraphicsView):
             center_now = self.mapToScene(self.viewport().width() // 2, self.viewport().height() // 2)
             center_new = mouse_old - mouse_now + center_now
             self.centerOn(center_new)
+
+
+class Paint(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.scale = 5
+        self.scale_length = 1
+        self.scale_count = 1
+
+    def paintEvent(self, event):
+        pos = event.scenePos()
+        if pos.x() < 0: pos.setX(0)
+        if pos.x() > self.width() - 1: pos.setX(self.width() - 1)
+        if pos.y() < 0: pos.setY(0)
+        if pos.y() > self.height() - 1: pos.setY(self.height() - 1)
+
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+
+        # 绘制主线
+        painter.save()
+        painter.setPen(QtGui.QPen(QtGui.QColor(85, 170, 255), 1))
+        painter.setBrush(QtGui.QBrush(QtGui.QColor(85, 170, 255)))
+        painter.drawLine(QtCore.QPointF(pos.x(), 0), QtCore.QPointF(pos.x(), self.height()))
+        painter.drawLine(QtCore.QPointF(0, pos.y()), QtCore.QPointF(self.width(), pos.y()))
+        painter.restore()
+        painter.setPen(QtGui.QPen(QtGui.QColor(255, 0, 255), 1))
+
+        # 计算线段属性
+        # dx = self.m_currentPoint.x() - self.m_lastPoint.x()
+        # dy = self.m_currentPoint.y() - self.m_lastPoint.y()
+        # line_len = math.sqrt(dx * dx + dy * dy)
+        # radian = math.atan2(dy, dx)
+
+        # 定义常量
+        # SMALL_SCALE = 5  # 小刻度间距
+        # LARGE_SCALE = 25  # 大刻度间距
+        # SMALL_TICK_LENGTH = 5  # 小刻度长度
+        # LARGE_TICK_LENGTH = 20  # 大刻度长度
+
+        # s_scale_count = int(line_len // SMALL_SCALE)
+        # l_scale_count = int(line_len // LARGE_SCALE) + 1
+
+        # # 绘制小刻度
+        # for i in range(s_scale_count):
+        #     if i % 5 != 0:  # 跳过大刻度的位置
+        #         cur_pos = QPointF(
+        #             self.m_lastPoint.x() + i * SMALL_SCALE * math.cos(radian),
+        #             self.m_lastPoint.y() + i * SMALL_SCALE * math.sin(radian)
+        #         )
+        #         p_scale = QPointF(
+        #             cur_pos.x() + SMALL_TICK_LENGTH * math.sin(radian),
+        #             cur_pos.y() - SMALL_TICK_LENGTH * math.cos(radian)
+        #         )
+        #         painter.drawLine(cur_pos, p_scale)
+
+        # 绘制大刻度
+        for j in range(self.scale_count):
+            cur_pos = QtCore.QPointF(pos.x() + (j+1) * self.scale,pos.y())
+            p_scale = QtCore.QPointF(cur_pos.x(), cur_pos.y() - self.scale_length)
+            painter.drawLine(cur_pos, p_scale)
+
+        # 绘制刻度文本
+        # scale_font = QFont("宋体", 6, QFont.Weight.Bold)
+        # painter.setFont(scale_font)
+        # painter.setPen(QPen(QColor(138, 43, 226), 1))
+        # for i in range(l_scale_count):
+        #     cur_pos = QPointF(
+        #         self.m_lastPoint.x() + i * LARGE_SCALE * math.cos(radian),
+        #         self.m_lastPoint.y() + i * LARGE_SCALE * math.sin(radian)
+        #     )
+        #     text_pos = QPointF(
+        #         cur_pos.x() + LARGE_SCALE * math.sin(radian),
+        #         cur_pos.y() - LARGE_SCALE * math.cos(radian)
+        #     )
+        #     painter.drawText(text_pos, str(i * 5))
