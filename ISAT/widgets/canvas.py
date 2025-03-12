@@ -2,11 +2,11 @@
 # @Author  : LG
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from ISAT.widgets.polygon import Polygon, Vertex, PromptPoint, Line, Rect
+from ISAT.widgets.polygon import Polygon, Vertex, PromptPoint, Line, Rect, BlurRect
 from ISAT.configs import STATUSMode, CLICKMode, DRAWMode, CONTOURMode
 import numpy as np
 import cv2
-import time  # 拖动鼠标描点
+import time
 import shapely
 
 
@@ -23,6 +23,8 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.current_graph: Polygon = None                     # 当前正在绘制的多边形
         self.current_sam_rect: Rect = None                     # SAM框选区域
         self.current_line: Line = None                         # 当前绘制的线段
+        self.blur_rect:BlurRect = None
+        self.temp_rect = None
         
         # 模式设置
         self.mode = STATUSMode.VIEW                           # 当前模式(查看/创建/编辑)
@@ -110,6 +112,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.mainwindow.actionSegment_anything.setEnabled(False)
         self.mainwindow.actionSegment_anything_box.setEnabled(False)
         self.mainwindow.actionPolygon.setEnabled(False)
+        self.mainwindow.actionBlur.setEnabled(False)
         self.mainwindow.actionBackspace.setEnabled(True)
         self.mainwindow.actionFinish.setEnabled(True)
         self.mainwindow.actionCancel.setEnabled(True)
@@ -147,6 +150,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.mainwindow.actionNext.setEnabled(True)
         self.mainwindow.SeganyEnabled()
         self.mainwindow.actionPolygon.setEnabled(self.mainwindow.can_be_annotated)
+        self.mainwindow.actionBlur.setEnabled(self.mainwindow.can_be_annotated)
         self.mainwindow.actionBackspace.setEnabled(False)
         self.mainwindow.actionFinish.setEnabled(False)
         self.mainwindow.actionCancel.setEnabled(True)
@@ -186,6 +190,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.mainwindow.actionSegment_anything.setEnabled(False)
         self.mainwindow.actionSegment_anything_box.setEnabled(False)
         self.mainwindow.actionPolygon.setEnabled(False)
+        self.mainwindow.actionBlur.setEnabled(False)
         self.mainwindow.actionBackspace.setEnabled(False)
         self.mainwindow.actionFinish.setEnabled(False)
         self.mainwindow.actionCancel.setEnabled(True)
@@ -228,6 +233,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
 
         self.mainwindow.actionSegment_anything.setEnabled(False)
         self.mainwindow.actionSegment_anything_box.setEnabled(False)
+        self.mainwindow.actionPolygon.setEnabled(False)
         self.mainwindow.actionPolygon.setEnabled(False)
         self.mainwindow.actionBackspace.setEnabled(True)
         self.mainwindow.actionFinish.setEnabled(False)
@@ -280,6 +286,20 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.draw_mode = DRAWMode.POLYGON
         self.start_draw()
 
+    def start_determine_blur(self):
+        self.draw_mode = DRAWMode.BLUR_RECT
+        if self.mode != STATUSMode.VIEW:
+            return
+        # 否则，切换到绘图模式
+        self.change_mode_to_create()
+        if self.mainwindow.cfg['software']['create_mode_invisible_polygon']:
+            self.mainwindow.set_labels_visible(False)
+
+        # 绘图模式
+        if self.mode == STATUSMode.CREATE:
+            self.blur_rect = BlurRect()
+            self.addItem(self.blur_rect)
+
     def start_draw(self):
         # 只有view模式时，才能切换create模式
         if self.mode != STATUSMode.VIEW:
@@ -292,7 +312,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         # 绘图模式
         if self.mode == STATUSMode.CREATE:
             self.current_graph = Polygon()
-            self.addItem(self.current_graph)
+            self.addItem(self.current_graph)   # 回调函数
 
     def finish_draw(self):
 
@@ -444,6 +464,10 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                 self.current_graph.delete()  # 清除所有路径
                 self.removeItem(self.current_graph)
                 self.current_graph = None
+            if self.blur_rect is not None:
+                self.blur_rect.delete()  # 清除所有路径
+                self.removeItem(self.blur_rect)
+                self.blur_rect = None
         if self.mode == STATUSMode.REPAINT:
             if self.current_line is not None:
                 self.current_line.delete()
@@ -834,7 +858,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                         self.current_sam_rect = Rect()
                         self.current_sam_rect.setZValue(2)
                         self.addItem(self.current_sam_rect)
-                        self.current_sam_rect.addPoint(QtCore.QPointF(sceneX, sceneY))
+                        # self.current_sam_rect.addPoint(QtCore.QPointF(sceneX, sceneY))
                         self.current_sam_rect.addPoint(QtCore.QPointF(sceneX, sceneY))
 
                 elif self.draw_mode == DRAWMode.POLYGON:
@@ -844,6 +868,26 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                     self.current_graph.addPoint(QtCore.QPointF(sceneX, sceneY))
                     # 添加随鼠标移动的点
                     self.current_graph.addPoint(QtCore.QPointF(sceneX, sceneY))
+                elif self.draw_mode == DRAWMode.BLUR_RECT:
+                    # if self.blur_rect is not None:
+                    #     if self.blur_rect.preMousePosition is not None:
+                    #         self.blur_rect.determine_blur(event.pos())
+                    # if self.blur_rect is None:
+                    #     self.blur_rect = BlurRect()
+                    #     self.blur_rect.preMousePosition = event.pos()
+                    # 移除随鼠标移动的点
+                    # self.current_graph.removePoint(len(self.current_graph.points) - 1)
+                    # 添加当前点
+                    # self.current_graph.addPoint(QtCore.QPointF(sceneX, sceneY))
+                    # 添加随鼠标移动的点
+                    if not self.blur_rect.press:
+                        self.blur_rect.addPoint(QtCore.QPointF(sceneX, sceneY))
+                        self.blur_rect.press = True
+                    else:
+                        self.blur_rect.addPoint(QtCore.QPointF(sceneX, sceneY))
+                        self.blur_rect.determine_blur(self.image_data)
+                        self.cancel_draw()
+
                 else:
                     raise ValueError('The draw mode named {} not supported.')
             if event.button() == QtCore.Qt.MouseButton.RightButton:
@@ -861,6 +905,8 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                     try:
                         self.finish_draw()
                     except: pass
+                elif self.draw_mode == DRAWMode.BLUR_RECT:
+                    pass
                 else:
                     raise ValueError('The draw mode named {} not supported.')
             if self.draw_mode == DRAWMode.SEGMENTANYTHING:
@@ -963,6 +1009,9 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                     self.removeItem(i)
             self.y_scale_list.clear()
 
+        if self.temp_rect is not None and self.temp_rect in self.items():
+            self.removeItem(self.temp_rect)
+
         pos = event.scenePos()
         if pos.x() < 0: pos.setX(0)
         if pos.x() > self.width() - 1: pos.setX(self.width() - 1)
@@ -978,7 +1027,23 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                 if self.current_sam_rect is not None:
                     self.current_sam_rect.movePoint(len(self.current_sam_rect.points) - 1, pos)
                     self.update_mask()
+            if self.draw_mode == DRAWMode.BLUR_RECT:
+                # 随鼠标位置实时绘制正方形
+                # if self.blur_rect is not None and not self.blur_rect.secondPressed:
+                #     str_x, str_y = [self.blur_rect.preMousePosition.x(), self.blur_rect.preMousePosition.y()]
+                #
+                #     if str_x == 0:
+                #         str_x = 100
+                #         str_y = 100
+                #     end_x, end_y = [pos.x() ,pos.y()]
+                #     self.temp_rect = QtWidgets.QGraphicsRectItem(QtCore.QRectF(int(str_x), int(str_y), int(end_x-str_x), int(end_y-str_y)))
+                #     self.temp_rect.setBrush(QtGui.QBrush(QtGui.QColor(255, 0, 0, 128)))
+                #     self.temp_rect.setPen(QtGui.QPen(QtGui.QColor('#FF0000'), 2))
+                #     self.addItem(self.temp_rect.setZValue(2))
+                # 随鼠标位置实时更新多边形
+                self.blur_rect.movePoint(len(self.blur_rect.points) - 1, pos)
 
+                    # self.blur_rect.update_blur()
         if self.mode == STATUSMode.REPAINT:
             self.current_line.movePoint(len(self.current_line.points) - 1, pos)
 

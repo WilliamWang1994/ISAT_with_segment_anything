@@ -1071,6 +1071,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.actionFinish.setEnabled(True)
                 self.actionCancel.setEnabled(True)
                 self.actionVisible.setEnabled(True)
+                self.actionBlur.setEnabled(True)
             else:
                 self.actionPolygon.setEnabled(False)
                 self.actionSave.setEnabled(False)
@@ -1079,6 +1080,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.actionFinish.setEnabled(False)
                 self.actionCancel.setEnabled(False)
                 self.actionVisible.setEnabled(False)
+                self.actionBlur.setEnabled(False)
 
             self.scene.load_image(file_path)
 
@@ -1216,6 +1218,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionVideo_segment_five_times.setEnabled(False)
         self.actionPolygon.setEnabled(False)
         self.actionVisible.setEnabled(False)
+        self.actionBlur.setEnabled(False)
+
         self.map_mode = MAPMode.SEMANTIC
         semantic_icon = QtGui.QIcon()
         semantic_icon.addPixmap(QtGui.QPixmap(":/icon/icons/semantic.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -1245,6 +1249,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionVideo_segment_five_times.setEnabled(False)
         self.actionPolygon.setEnabled(False)
         self.actionVisible.setEnabled(False)
+        self.actionBlur.setEnabled(False)
+
         self.map_mode = MAPMode.INSTANCE
         instance_icon = QtGui.QIcon()
         instance_icon.addPixmap(QtGui.QPixmap(":/icon/icons/instance.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -1268,6 +1274,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionVideo_segment_five_times.setEnabled(self.use_segment_anything_video)
         self.actionPolygon.setEnabled(True)
         self.actionVisible.setEnabled(True)
+        self.actionBlur.setEnabled(True)
         self.map_mode = MAPMode.LABEL
         label_icon = QtGui.QIcon()
         label_icon.addPixmap(QtGui.QPixmap(":/icon/icons/照片_pic.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -1491,6 +1498,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionSegment_anything.triggered.connect(self.scene.start_segment_anything)
         self.actionSegment_anything_box.triggered.connect(self.scene.start_segment_anything_box)
         self.actionPolygon.triggered.connect(self.scene.start_draw_polygon)
+        self.actionBlur.triggered.connect(self.scene.start_determine_blur)
         self.actionCancel.triggered.connect(self.scene.cancel_draw)
         self.actionBackspace.triggered.connect(self.scene.backspace)
         self.actionFinish.triggered.connect(self.scene.finish_draw)
@@ -1509,6 +1517,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionZoom_in.triggered.connect(self.view.zoom_in)
         self.actionZoom_out.triggered.connect(self.view.zoom_out)
         self.actionFit_wiondow.triggered.connect(self.view.zoomfit)
+
         self.actionBit_map.triggered.connect(self.change_bit_map)
         self.actionVisible.triggered.connect(functools.partial(self.set_labels_visible, None))
 
@@ -1538,6 +1547,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionSegment_anything.setEnabled(False)
         self.actionSegment_anything_box.setEnabled(False)
         self.actionPolygon.setEnabled(False)
+        self.actionBlur.setEnabled(False)
         self.actionVideo_segment.setEnabled(False)
         self.actionVideo_segment_once.setEnabled(False)
         self.actionVideo_segment_five_times.setEnabled(False)

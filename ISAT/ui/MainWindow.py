@@ -260,16 +260,25 @@ class Ui_MainWindow(object):
         icon21.addPixmap(QtGui.QPixmap(":/icon/icons/校验_check-one.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionFinish.setIcon(icon21)
         self.actionFinish.setObjectName("actionFinish")
+
         self.actionPolygon = QtWidgets.QAction(MainWindow)
         icon22 = QtGui.QIcon()
         icon22.addPixmap(QtGui.QPixmap(":/icon/icons/锚点_anchor.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionPolygon.setIcon(icon22)
         self.actionPolygon.setObjectName("actionPolygon")
+
         self.actionVisible = QtWidgets.QAction(MainWindow)
         icon23 = QtGui.QIcon()
         icon23.addPixmap(QtGui.QPixmap(":/icon/icons/眼睛_eyes.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionVisible.setIcon(icon23)
         self.actionVisible.setObjectName("actionVisible")
+
+        self.actionBlur = QtWidgets.QAction(MainWindow)
+        icon24 = QtGui.QIcon()
+        icon24.addPixmap(QtGui.QPixmap(":/icon/icons/模糊判断_blur.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionBlur.setIcon(icon24)
+        self.actionBlur.setObjectName("actionBlur")
+
         self.actionContour_Max_only = QtWidgets.QAction(MainWindow)
         self.actionContour_Max_only.setCheckable(True)
         font = QtGui.QFont()
@@ -463,6 +472,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionFit_wiondow)
         self.toolBar.addAction(self.actionBit_map)
         self.toolBar.addAction(self.actionVisible)
+        self.toolBar.addAction(self.actionBlur)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -550,14 +560,21 @@ class Ui_MainWindow(object):
         self.actionFinish.setToolTip(_translate("MainWindow", "Annotate finished"))
         self.actionFinish.setStatusTip(_translate("MainWindow", "Annotate finished."))
         self.actionFinish.setShortcut(_translate("MainWindow", "E"))
+
         self.actionPolygon.setText(_translate("MainWindow", "Polygon"))
         self.actionPolygon.setToolTip(_translate("MainWindow", "Draw polygon"))
         self.actionPolygon.setStatusTip(_translate("MainWindow", "Accurately annotate by drawing polygon. "))
         self.actionPolygon.setShortcut(_translate("MainWindow", "C"))
+
         self.actionVisible.setText(_translate("MainWindow", "Visible"))
         self.actionVisible.setToolTip(_translate("MainWindow", "Visible"))
         self.actionVisible.setStatusTip(_translate("MainWindow", "Visible."))
         self.actionVisible.setShortcut(_translate("MainWindow", "V"))
+
+        self.actionBlur.setText(_translate("MainWindow", "Blur"))
+        self.actionBlur.setToolTip(_translate("MainWindow", "Blur-determine"))
+        self.actionBlur.setStatusTip(_translate("MainWindow", "Visible."))
+
         self.actionContour_Max_only.setText(_translate("MainWindow", "Max only"))
         self.actionContour_Max_only.setStatusTip(_translate("MainWindow", "Max contour save only."))
         self.actionContour_Max_only.setWhatsThis(_translate("MainWindow", "Max contour save only."))
