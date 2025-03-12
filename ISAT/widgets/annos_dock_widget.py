@@ -69,10 +69,17 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         w_width.setFixedWidth(50)
         w_height = QtWidgets.QLabel('h:{}'.format(height))
         w_height.setFixedWidth(50)
+
         area, perimeter = polygon.calculate_area_perimeter()
         circularity = (4*np.pi*area) / (perimeter**2)
         w_circularity = QtWidgets.QLabel('r:{:.2f}'.format(circularity))  # roundness
-        w_circularity.setFixedWidth(80)
+        w_circularity.setFixedWidth(60)
+
+        major, minor = polygon.calculate_major_minor_axis()
+        w_major = QtWidgets.QLabel('l:{}'.format(int(major)))  # 长轴
+        w_minor = QtWidgets.QLabel('s:{}'.format(int(minor)))  # 短轴
+        w_major.setFixedWidth(50)
+        w_minor.setFixedWidth(50)
 
         group = QtWidgets.QLabel('{}'.format(polygon.group))
         group.setFixedWidth(40)
@@ -80,7 +87,6 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         # note = QtWidgets.QLabel('{}'.format(polygon.note))
         # note.setToolTip(polygon.note)
         # note.setFixedWidth(46)
-
 
 
         label_iscrowd = QtWidgets.QLabel()
@@ -93,6 +99,8 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
         layout.addWidget(w_width)
         layout.addWidget(w_height)
         layout.addWidget(w_circularity)
+        layout.addWidget(w_major)
+        layout.addWidget(w_minor)
         # layout.addWidget(note)
         # layout.addWidget(label_iscrowd)
 

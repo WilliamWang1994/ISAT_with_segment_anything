@@ -279,6 +279,33 @@ class Polygon(QtWidgets.QGraphicsPolygonItem):
             perimeter += d
         return abs(area) / 2, perimeter
 
+    def calculate_major_minor_axis(self):
+        temp_contour = []
+        for i in range(len(self.points)):
+            temp_contour.append([int(self.points[i].x()), int(self.points[i].y())])
+        ellipse = cv2.fitEllipse(np.asarray(temp_contour))
+        center, axes, angle = ellipse
+        major_axis, minor_axis = axes
+        angle_rad = np.deg2rad(angle)
+        cos_angle = np.cos(angle_rad)
+        sin_angle = np.sin(angle_rad)
+
+        # 长轴端点坐标
+        x1 = int(center[0] + major_axis / 2 * cos_angle)
+        y1 = int(center[1] - major_axis / 2 * sin_angle)
+        x2 = int(center[0] - major_axis / 2 * cos_angle)
+        y2 = int(center[1] + major_axis / 2 * sin_angle)
+        major_len = np.sqrt((y2-y1)**2+(x2-x1)**2)
+
+        # 短轴端点坐标
+        x3 = int(center[0] + minor_axis / 2 * sin_angle)
+        y3 = int(center[1] + minor_axis / 2 * cos_angle)
+        x4 = int(center[0] - minor_axis / 2 * sin_angle)
+        y4 = int(center[1] - minor_axis / 2 * cos_angle)
+        minor_len = np.sqrt((y4 - y3) ** 2 + (x4 - x3) ** 2)
+
+        return [major_len, minor_len] if major_len > minor_len else [minor_len, major_len]
+
     def load_object(self, object):
         segmentation = object.segmentation
         for x, y in segmentation:
