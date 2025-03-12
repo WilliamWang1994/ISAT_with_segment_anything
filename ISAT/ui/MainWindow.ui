@@ -296,6 +296,7 @@
    <addaction name="actionFit_wiondow"/>
    <addaction name="actionBit_map"/>
    <addaction name="actionVisible"/>
+   <addaction name="actionBlur"/>
   </widget>
   <widget class="QDockWidget" name="info_dock">
    <property name="minimumSize">
@@ -741,6 +742,7 @@
     <string>C</string>
    </property>
   </action>
+
   <action name="actionVisible">
    <property name="icon">
     <iconset resource="../icons.qrc">
@@ -759,6 +761,24 @@
     <string>V</string>
    </property>
   </action>
+
+  <action name="actionBlur">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/icon/icons/模糊判断_blur.svg</normaloff>:/icon/icons/模糊判断_blur.svg</iconset>
+   </property>
+<!--   <property name="text">-->
+<!--    <string>Blur</string>-->
+<!--   </property>-->
+<!--   <property name="toolTip">-->
+<!--    <string>Visible</string>-->
+<!--   </property>-->
+<!--   <property name="statusTip">-->
+<!--    <string>Visible.</string>-->
+<!--   </property>-->
+  </action>
+
+
   <action name="actionContour_Max_only">
    <property name="checkable">
     <bool>true</bool>
