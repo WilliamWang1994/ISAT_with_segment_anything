@@ -286,25 +286,25 @@ class Polygon(QtWidgets.QGraphicsPolygonItem):
         ellipse = cv2.fitEllipse(np.asarray(temp_contour))
         center, axes, angle = ellipse
         major_axis, minor_axis = axes
-        angle_rad = np.deg2rad(angle)
-        cos_angle = np.cos(angle_rad)
-        sin_angle = np.sin(angle_rad)
+        # angle_rad = np.deg2rad(angle)
+        # cos_angle = np.cos(angle_rad)
+        # sin_angle = np.sin(angle_rad)
 
         # 长轴端点坐标
-        x1 = int(center[0] + major_axis / 2 * cos_angle)
-        y1 = int(center[1] - major_axis / 2 * sin_angle)
-        x2 = int(center[0] - major_axis / 2 * cos_angle)
-        y2 = int(center[1] + major_axis / 2 * sin_angle)
-        major_len = np.sqrt((y2-y1)**2+(x2-x1)**2)
+        # x1 = int(center[0] + major_axis / 2 * cos_angle)
+        # y1 = int(center[1] - major_axis / 2 * sin_angle)
+        # x2 = int(center[0] - major_axis / 2 * cos_angle)
+        # y2 = int(center[1] + major_axis / 2 * sin_angle)
+        # major_len = np.sqrt((y2-y1)**2+(x2-x1)**2)
+        #
+        # # 短轴端点坐标
+        # x3 = int(center[0] + minor_axis / 2 * sin_angle)
+        # y3 = int(center[1] + minor_axis / 2 * cos_angle)
+        # x4 = int(center[0] - minor_axis / 2 * sin_angle)
+        # y4 = int(center[1] - minor_axis / 2 * cos_angle)
+        # minor_len = np.sqrt((y4 - y3) ** 2 + (x4 - x3) ** 2)
 
-        # 短轴端点坐标
-        x3 = int(center[0] + minor_axis / 2 * sin_angle)
-        y3 = int(center[1] + minor_axis / 2 * cos_angle)
-        x4 = int(center[0] - minor_axis / 2 * sin_angle)
-        y4 = int(center[1] - minor_axis / 2 * cos_angle)
-        minor_len = np.sqrt((y4 - y3) ** 2 + (x4 - x3) ** 2)
-
-        return [major_len, minor_len] if major_len > minor_len else [minor_len, major_len]
+        return [major_axis, minor_axis] if major_axis > minor_axis else [minor_axis, major_axis]
 
     def load_object(self, object):
         segmentation = object.segmentation
@@ -530,93 +530,6 @@ class Rect(QtWidgets.QGraphicsRectItem):
         self.setRect(QtCore.QRectF(self.points[0], self.points[-1]))
 
 
-class BlurRect_(QtWidgets.QGraphicsRectItem):
-    def __init__(self, parent=None):
-        super(BlurRect_, self).__init__(None)
-        self.rect = None
-        self.move = False
-        self.bigger = False
-        self.points = []
-        self.line_up = None
-        self.line_left = None
-        self.line_down = None
-        self.line_right = None
-
-        self.secondPressed = bool(False)
-        self.preMousePosition = None
-
-    # # 重写绘制函数
-    # def paintEvent(self, event):
-    #     # 初始化绘图工具
-    #     qp = QPainter()
-    #     # 开始在窗口绘制
-    #     qp.begin(self)
-    #     # 自定义画点方法
-    #     if self.rect:
-    #         self.drawRect(qp)
-    #     # 结束在窗口的绘制
-    #     qp.end()
-    #
-    # def drawRect(self, qp):
-    #     # 创建红色，宽度为4像素的画笔
-    #     pen_line = QPen(Qt.red, 2)
-    #     pen_ellipse = QPen(Qt.black, 1)
-    #
-    #     brush_ellipse = QBrush(QColor(0, 78, 152))
-    #
-    #     if self.rect[0] < self.x:
-    #         qp.setPen(pen_line)
-    #         # qp.drawLine(self.rect[0] + 4, self.rect[1] + 8, self.rect[0] + 4, self.y)  # 横向
-    #         qp.drawLine(self.rect[0] + 8, self.rect[1] + 4, self.x, self.rect[1] + 4)  # 竖直
-    #         # qp.drawLine(self.rect[0] + 8, self.y + 4, self.x, self.y + 4)
-    #         # qp.drawLine(self.x + 4, self.rect[1] + 8, self.x + 4, self.y)
-    #
-    #         qp.setPen(pen_ellipse)
-    #         qp.setBrush(brush_ellipse)
-    #         qp.drawEllipse(self.rect[0], self.rect[1], 8, 8)  # (startx, starty, w, h) 左上
-    #         qp.drawEllipse(self.rect[0], self.y, 8, 8)  # (startx, starty, w, h) 左上
-    #         qp.drawEllipse(self.x, self.rect[1], 8, 8)  # (startx, starty, w, h) 右上
-    #         qp.drawEllipse(self.x, self.y, 8, 8)  # (startx, starty, w, h) 右下
-    #
-    #         # qp.drawEllipse(self.rect[0] + self.rect[2] / 2, self.rect[1], 8, 8)  # (startx, starty, w, h) 上中
-    #         # qp.drawEllipse(self.x - self.rect[2] / 2, self.y, 8, 8)  # (startx, starty, w, h) 下中
-    #         qp.drawEllipse(self.rect[0], self.rect[1] + self.rect[3] / 2, 8, 8)  # (startx, starty, w, h) 左中
-    #         qp.drawEllipse(self.x, self.rect[1] + self.rect[3] / 2, 8, 8)  # (startx, starty, w, h) 右中
-    #     # else:
-    #     #     qp.drawLine(self.rect[0] + 4, self.rect[1], self.rect[0] + 4, self.y + 8)  # 竖直
-    #     #     qp.drawLine(self.rect[0], self.rect[1] + 4, self.x + 8, self.rect[1] + 4)  # 横向
-    #     #     qp.drawLine(self.rect[0], self.y + 4, self.x + 8, self.y + 4)
-    #     #     qp.drawLine(self.x + 4, self.rect[1], self.x + 4, self.y + 8)
-    #     #
-    #     #     qp.drawEllipse(self.rect[0], self.rect[1], 8, 8)  # (startx, starty, w, h) 左上
-    #     #     qp.drawEllipse(self.rect[0], self.y, 8, 8)  # (startx, starty, w, h) 左上
-    #     #     qp.drawEllipse(self.x, self.rect[1], 8, 8)  # (startx, starty, w, h) 右上
-    #     #     qp.drawEllipse(self.x, self.y, 8, 8)  # (startx, starty, w, h) 右下
-    #     #
-    #     #     qp.drawEllipse(self.rect[0] + self.rect[2] / 2, self.rect[1], 8, 8)  # (startx, starty, w, h) 右上
-    #     #     qp.drawEllipse(self.x - self.rect[2] / 2, self.y, 8, 8)  # (startx, starty, w, h) 右下
-    #     # qp.drawRect(*self.rect)
-
-    # 重写三个时间处理
-
-    def movePoint(self,point):
-        self.setRect(QtCore.QRectF(self.preMousePosition, point))
-
-
-    def removePoint(self, index):
-        if not self.points:
-            return
-        self.points.pop(index)
-        vertex = self.vertexs.pop(index)
-        self.scene().removeItem(vertex)
-        del vertex
-        self.redraw()
-
-
-    def determine_blur(self):
-        print(self.points)
-
-
 class BlurRect(QtWidgets.QGraphicsRectItem):
     def __init__(self):
         super(BlurRect, self).__init__(parent=None)
@@ -630,12 +543,14 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
         self.iscrowd = 0
         self.note = ''
         self.press = False
-
         self.rxmin, self.rxmax, self.rymin, self.rymax = 0, 0, 0, 0 # 用于绘画完成后，记录多边形的各边界，此处与points对应
         self.color = QtGui.QColor('#ff0000')
         self.is_drawing = True
 
         self.setPen(QtGui.QPen(self.color, self.line_width))
+        self.text_item = QtWidgets.QGraphicsTextItem()
+        # 设置Z值
+        self.text_item.setZValue(1e5)
         # self.setBrush(QtGui.QBrush(self.color, QtCore.Qt.BrushStyle.FDiagPattern))
 
         self.setAcceptHoverEvents(True)
@@ -692,12 +607,28 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
         part_image = image[self.rymin:self.rymax, self.rxmin:self.rxmax]
         gray = cv2.cvtColor(part_image, cv2.COLOR_RGB2GRAY)
         fm = cv2.Laplacian(gray, cv2.CV_64F).var()
+        w = self.rxmax - self.rxmin
         print(f'模糊度：{fm}')
-        if fm < 50:
-            print('blurry')
-        else:
-            print('clear')
+        self.text_item.setFont(QtGui.QFont("Arial", 10))
+        if fm < 60:
+            self.text_item.setPlainText('blurry')
+            self.text_item.setDefaultTextColor(self.color)
+            # 设置字体
 
+        else:
+            self.text_item.setPlainText('clear')
+            self.text_item.setDefaultTextColor(QtGui.QColor('green'))
+            # 设置字体
+
+
+        # item0.setPlainText('this is plain text')
+        self.text_item.setPos(self.rxmin, self.rymin-20)
+        self.scene().addItem(self.text_item)
+
+        # self.scene().update()
+        # time.sleep(3)
+        # self.scene().removeItem(self.text_item)
+        # return fm
 
 
     def delete(self):
@@ -706,6 +637,7 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
             vertex = self.vertexs.pop()
             self.scene().removeItem(vertex)
             del vertex
+        self.scene().removeItem(self.text_item)
 
     # def moveVertex(self, index, point):
     #     if not 0 <= index < len(self.vertexs):
@@ -778,7 +710,6 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
         w = self.rxmax - self.rxmin
         h = self.rymax - self.rymin
         self.setRect(QtCore.QRectF(self.rxmin, self.rymin, w, h))
-        # QtCore.QRectF(self.preMousePosition, point)
 
     # def change_color(self, color):
     #     self.color = color

@@ -24,7 +24,6 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         self.current_sam_rect: Rect = None                     # SAM框选区域
         self.current_line: Line = None                         # 当前绘制的线段
         self.blur_rect:BlurRect = None
-        self.temp_rect = None
         
         # 模式设置
         self.mode = STATUSMode.VIEW                           # 当前模式(查看/创建/编辑)
@@ -886,7 +885,17 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                     else:
                         self.blur_rect.addPoint(QtCore.QPointF(sceneX, sceneY))
                         self.blur_rect.determine_blur(self.image_data)
-                        self.cancel_draw()
+                        # item0 = QtWidgets.QGraphicsTextItem()
+                        # print(f'模糊度：{fm}')
+                        # if fm < 50:
+                        #     item0.setPlainText('blurry')
+                        # else:
+                        #     item0.setPlainText('clear')
+                        #
+                        # # item0.setPlainText('this is plain text')
+                        # self.addItem(item0)
+                        QtCore.QTimer.singleShot(1500, lambda :self.cancel_draw())
+                        # self.cancel_draw()
 
                 else:
                     raise ValueError('The draw mode named {} not supported.')
@@ -1008,9 +1017,6 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                 if i in self.items():
                     self.removeItem(i)
             self.y_scale_list.clear()
-
-        if self.temp_rect is not None and self.temp_rect in self.items():
-            self.removeItem(self.temp_rect)
 
         pos = event.scenePos()
         if pos.x() < 0: pos.setX(0)

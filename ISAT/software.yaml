@@ -1,34 +1,18 @@
 label:
-- color: '#000000'
-  name: __background__
-- color: '#ef2929'
-  name: person
-- color: '#fcaf3e'
-  name: knife
-- color: '#fce94f'
-  name: fork
-- color: '#8ae234'
-  name: cup
-- color: '#729fcf'
-  name: giraffe
-- color: '#ad7fa8'
-  name: plate
-- color: '#e9b96e'
-  name: table
-- color: '#a40000'
-  name: cake
-- color: '#5c3566'
-  name: fence
-- color: '#204a87'
-  name: hat
+- color: '#ff0000'
+  name: Single
+- color: '#00ff00'
+  name: Organoid
+- color: '#00aaff'
+  name: Multi
 software:
   auto_save: false
-  contour_mode: external
+  contour_mode: max_only
   create_mode_invisible_polygon: true
   language: en
-  mask_alpha: 0.6
-  show_edge: true
-  show_prompt: true
-  use_bfloat16: false
+  mask_alpha: 1.0
+  show_edge: false
+  show_prompt: false
+  use_bfloat16: true
   use_polydp: true
   vertex_size: 1
