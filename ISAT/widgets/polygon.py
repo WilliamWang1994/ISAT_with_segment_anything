@@ -610,7 +610,7 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
         w = self.rxmax - self.rxmin
         print(f'模糊度：{fm}')
         self.text_item.setFont(QtGui.QFont("Arial", 10))
-        if fm < 60:
+        if fm < self.scene().mainwindow.cfg['software']['blur_th']:
             self.text_item.setPlainText('blurry')
             self.text_item.setDefaultTextColor(self.color)
             # 设置字体
