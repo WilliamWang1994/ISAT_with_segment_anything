@@ -542,10 +542,12 @@ class Ui_MainWindow(object):
         self.actionTo_top.setToolTip(_translate("MainWindow", "Move polygon to top layer"))
         self.actionTo_top.setStatusTip(_translate("MainWindow", "Move polygon to top layer."))
         self.actionTo_top.setShortcut(_translate("MainWindow", "T"))
+
         self.actionTo_bottom.setText(_translate("MainWindow", "To bottom"))
         self.actionTo_bottom.setToolTip(_translate("MainWindow", "Move polygon to bottom layer"))
         self.actionTo_bottom.setStatusTip(_translate("MainWindow", "Move polygon to bottom layer."))
         self.actionTo_bottom.setShortcut(_translate("MainWindow", "B"))
+
         self.actionChinese.setText(_translate("MainWindow", "中文"))
         self.actionEnglish.setText(_translate("MainWindow", "English"))
         self.actionBackspace.setText(_translate("MainWindow", "Backspace"))

@@ -281,6 +281,10 @@ class Polygon(QtWidgets.QGraphicsPolygonItem):
 
     def calculate_major_minor_axis(self):
         temp_contour = []
+        if len(self.points) < 7:
+            w = self.rxmax - self.rxmin
+            h = self.rymax - self.rymin
+            return [w, h] if w >h else [h, w]
         for i in range(len(self.points)):
             temp_contour.append([int(self.points[i].x()), int(self.points[i].y())])
         ellipse = cv2.fitEllipse(np.asarray(temp_contour))

@@ -7,6 +7,7 @@ label:
   name: Multi
 software:
   auto_save: false
+  blur_th: 70
   contour_mode: max_only
   create_mode_invisible_polygon: true
   language: en
@@ -16,4 +17,3 @@ software:
   use_bfloat16: true
   use_polydp: true
   vertex_size: 1
-  blur_th: 70
