@@ -48,7 +48,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
 
         self.x_scale_list = []
         self.y_scale_list = []
-        self.scale = self.mainwindow.cfg['software']['scale_size'] # 刻度线间隔 单位：像素
+        # self.scale = self.mainwindow.cfg['software']['scale_size'] # 刻度线间隔 单位：像素
         self.scale_count = 1 # 刻度线数量
         self.scale_length = 1 # 刻度线长度
 
@@ -1024,7 +1024,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
         if pos.y() < 0: pos.setY(0)
         if pos.y() > self.height() - 1: pos.setY(self.height() - 1)
         # 限制在图片范围内
-
+        self.scale = self.mainwindow.cfg['software']['scale_size']
         if self.mode == STATUSMode.CREATE:
             if self.draw_mode == DRAWMode.POLYGON:
                 # 随鼠标位置实时更新多边形
