@@ -12,6 +12,7 @@ software:
   create_mode_invisible_polygon: true
   language: en
   mask_alpha: 1.0
+  scale_size: 7
   show_edge: false
   show_prompt: false
   use_bfloat16: true

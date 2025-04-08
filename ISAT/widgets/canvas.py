@@ -48,7 +48,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
 
         self.x_scale_list = []
         self.y_scale_list = []
-        self.scale = 7 # 刻度线间隔 单位：像素
+        self.scale = self.mainwindow.cfg['software']['scale_size'] # 刻度线间隔 单位：像素
         self.scale_count = 1 # 刻度线数量
         self.scale_length = 1 # 刻度线长度
 
