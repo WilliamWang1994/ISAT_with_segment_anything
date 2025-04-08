@@ -1443,7 +1443,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             try:
                 self.scene.guide_line_x.setVisible(False)
                 self.scene.guide_line_y.setVisible(False)
-            except: pass
+            except:
+                pass
             image = QtGui.QImage(self.scene.sceneRect().size().toSize(), QtGui.QImage.Format_ARGB32)
             painter = QtGui.QPainter(image)
             self.scene.render(painter)

@@ -48,7 +48,7 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
 
         self.x_scale_list = []
         self.y_scale_list = []
-        self.scale = 3 # 刻度线间隔 单位：像素
+        self.scale = 7 # 刻度线间隔 单位：像素
         self.scale_count = 1 # 刻度线数量
         self.scale_length = 1 # 刻度线长度
 
@@ -1072,8 +1072,8 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                                                                                    pos.y()+self.scale_length,
                                                                                    pos.x()+self.scale*(i+1),
                                                                                    pos.y()-self.scale_length)))
-                self.x_scale_list[i*2].setZValue(.5)
-                self.x_scale_list[i*2+1].setZValue(.5)
+                self.x_scale_list[i*2].setZValue(1)
+                self.x_scale_list[i*2+1].setZValue(1)
                 self.addItem(self.x_scale_list[i*2])
                 self.addItem(self.x_scale_list[i*2+1])
 
@@ -1093,8 +1093,8 @@ class AnnotationScene(QtWidgets.QGraphicsScene):
                                                                                    pos.x() - self.scale_length,
                                                                                    pos.y() + self.scale * (i + 1)
                                                                                    )))
-                self.y_scale_list[i*2].setZValue(.5)
-                self.y_scale_list[i*2+1].setZValue(.5)
+                self.y_scale_list[i*2].setZValue(1)
+                self.y_scale_list[i*2+1].setZValue(1)
                 self.addItem(self.y_scale_list[i*2])
                 self.addItem(self.y_scale_list[i*2+1])
 
