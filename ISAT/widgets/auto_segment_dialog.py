@@ -85,6 +85,7 @@ class AutoSegmentThread(QThread):
                 difficult = obj.find('difficult').text
                 bndbox = obj.find('bndbox')
                 xmin = float(bndbox.find('xmin').text)
+
                 ymin = float(bndbox.find('ymin').text)
                 xmax = float(bndbox.find('xmax').text)
                 ymax = float(bndbox.find('ymax').text)

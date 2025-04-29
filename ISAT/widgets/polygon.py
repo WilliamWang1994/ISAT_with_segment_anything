@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Author  : LG
-import time
-from ctypes import c_voidp
+# import time
 
 import cv2
 import numpy as np
@@ -629,11 +628,6 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
         self.text_item.setPos(self.rxmin, self.rymin-20)
         self.scene().addItem(self.text_item)
 
-        # self.scene().update()
-        # time.sleep(3)
-        # self.scene().removeItem(self.text_item)
-        # return fm
-
 
     def delete(self):
         self.points.clear()
@@ -643,13 +637,6 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
             del vertex
         self.scene().removeItem(self.text_item)
 
-    # def moveVertex(self, index, point):
-    #     if not 0 <= index < len(self.vertexs):
-    #         return
-    #     vertex = self.vertexs[index]
-    #     vertex.setEnabled(False)
-    #     vertex.setPos(point)
-    #     vertex.setEnabled(True)
 
     def itemChange(self, change: 'QGraphicsItem.GraphicsItemChange', value: typing.Any):
         if (change == QtWidgets.QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged
@@ -699,12 +686,6 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
             self.setBrush(self.color)
         super(BlurRect, self).hoverEnterEvent(event)
 
-    # def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent'):
-    #     if event.button() == QtCore.Qt.MouseButton.LeftButton:
-    #         self.scene().mainwindow.category_edit_widget.polygon = self
-    #         self.scene().mainwindow.category_edit_widget.load_cfg()
-    #         self.scene().mainwindow.category_edit_widget.show()
-
     def redraw(self):
         if len(self.points) < 1:
             return
@@ -714,75 +695,3 @@ class BlurRect(QtWidgets.QGraphicsRectItem):
         w = self.rxmax - self.rxmin
         h = self.rymax - self.rymin
         self.setRect(QtCore.QRectF(self.rxmin, self.rymin, w, h))
-
-    # def change_color(self, color):
-    #     self.color = color
-    #     if not self.scene().mainwindow.cfg['software']['show_edge']:
-    #         color.setAlpha(0)
-    #     self.setPen(QtGui.QPen(color, self.line_width))
-    #     self.color.setAlpha(self.nohover_alpha)
-    #     self.setBrush(self.color)
-    #     for vertex in self.vertexs:
-    #         vertex_color = self.color
-    #         vertex_color.setAlpha(255)
-    #         vertex.setPen(QtGui.QPen(vertex_color, self.line_width))
-    #         vertex.setBrush(vertex_color)
-    #
-    # def set_drawed(self, category, group, iscrowd, note, color:QtGui.QColor, layer=None):
-    #     self.is_drawing = False
-    #     self.category = category
-    #     if isinstance(group, str):
-    #         group = 0 if group == '' else int(group)
-    #     self.group = group
-    #     self.iscrowd = iscrowd
-    #     self.note = note
-    #
-    #     self.color = color
-    #     if not self.scene().mainwindow.cfg['software']['show_edge']:
-    #         color.setAlpha(0)
-    #     self.setPen(QtGui.QPen(color, self.line_width))
-    #     self.color.setAlpha(self.nohover_alpha)
-    #     self.setBrush(self.color)
-    #     if layer is not None:
-    #         self.setZValue(layer)
-    #         for vertex in self.vertexs:
-    #             vertex.setZValue(layer)
-    #     for vertex in self.vertexs:
-    #         vertex.setColor(color)
-    #
-    # def calculate_area_perimeter(self):
-    #     area = 0
-    #     perimeter = 0
-    #     num_points = len(self.points)
-    #     for i in range(num_points):
-    #         p1 = self.points[i]
-    #         p2 = self.points[(i + 1) % num_points]
-    #         shoelace = p1.x() * p2.y() - p2.x() * p1.y()
-    #         d = np.sqrt((p2.y() - p1.y())**2+(p2.x() - p1.x())**2)
-    #         area += shoelace
-    #         perimeter += d
-    #     return abs(area) / 2, perimeter
-    #
-    # def load_object(self, object):
-    #     segmentation = object.segmentation
-    #     for x, y in segmentation:
-    #         point = QtCore.QPointF(x, y)
-    #         self.addPoint(point)
-    #     color = self.scene().mainwindow.category_color_dict.get(object.category, '#000000')
-    #     self.set_drawed(object.category, object.group, object.iscrowd, object.note, QtGui.QColor(color), object.layer)  # ...
-    #
-    # def to_object(self):
-    #     if self.is_drawing:
-    #         return None
-    #     segmentation = []
-    #     for point in self.points:
-    #         point = point + self.pos()
-    #         segmentation.append((round(point.x(), 2), round(point.y(), 2)))
-    #     xmin = self.boundingRect().x() + self.pos().x()
-    #     ymin = self.boundingRect().y() + self.pos().y()
-    #     xmax = xmin + self.boundingRect().width()
-    #     ymax = ymin + self.boundingRect().height()
-    #
-    #     object = Object(self.category, group=self.group, segmentation=segmentation,
-    #                     area=self.calculate_area_perimeter()[0], layer=self.zValue(), bbox=(xmin, ymin, xmax, ymax), iscrowd=self.iscrowd, note=self.note)
-    #     return object

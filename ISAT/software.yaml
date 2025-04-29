@@ -1,10 +1,6 @@
 label:
-- color: '#ff0000'
-  name: Single
 - color: '#00ff00'
   name: Organoid
-- color: '#00aaff'
-  name: Multi
 software:
   auto_save: false
   blur_th: 70

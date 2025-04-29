@@ -248,7 +248,7 @@ class AnnosDockWidget(QtWidgets.QWidget, Ui_Form):
             polygons_in_group = [polygon for polygon, item in self.polygon_item_dict.items()]
         else:
             polygons_in_group = [polygon for polygon, item in self.polygon_item_dict.items()
-                                if polygon.group == int(selected_group)]
+                                if polygon.category == selected_group]
         if not polygons_in_group:
             return
         min_x = min(min(vertex.x() for vertex in polygon.vertexs) for polygon in polygons_in_group)
