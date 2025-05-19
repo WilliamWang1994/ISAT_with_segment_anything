@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# @Author  : LG
 
-__author__ = 'yatengLG'
-__version__ = '1.2.9'
+__author__ = 'wangcl'
+__version__ = 'v20250514'

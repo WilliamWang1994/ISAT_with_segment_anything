@@ -31,13 +31,13 @@ def get_install_requires():
 setup(
     name="isat-sam",                                        # 包名
     version=get_version(),                                  # 版本号
-    author="yatengLG",
-    author_email="yatenglg@foxmail.com",
+    author="wangcl",
+    author_email="wangchenglong@kingmedpharm.com",
     description="Interactive semi-automatic annotation tool for image segmentation based on SAM(segment anything model).",
     long_description=(codecs.open("README.md", encoding='utf-8').read()),
     long_description_content_type="text/markdown",
 
-    url="https://github.com/yatengLG/ISAT_with_segment_anything",  # 项目相关文件地址
+    url="http://192.168.20.42/ai/isat_with_segment_anything",  # 项目相关文件地址
 
     keywords=["annotation tool", "segment anything", "image annotation", "semantic segmentation", 'instance segmentation'],
     license="Apache2.0",
@@ -76,9 +76,7 @@ setup(
 
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.12",
     ],
     entry_points={
         "console_scripts": [
