@@ -83,5 +83,5 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "about"))
         self.label_3.setText(_translate("Dialog", "ISAT with Segment anything"))
-        self.label_5.setText(_translate("Dialog", "<html><head/><body><p align=\"center\">Open source on <a href=\"https://github.com/yatengLG/ISAT_with_segment_anything\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">Github</span></a>.</p><p align=\"center\">Main contributor <a href=\"https://github.com/Alias-z\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">Alias-z</span></a>.</p><p align=\"center\">ISAT Copyright (C) 2022 <a href=\"https://github.com/yatengLG\"><span style=\" text-decoration: underline; color:#0000ff;\">yatengLG</span></a>.</p></body></html>"))
+        self.label_5.setText(_translate("Dialog", "<html><head/><body><p align=\"center\">Open source on <a href=\"http://gitlab.kingbiotech.cn/ai/isat_with_segment_anything\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">Gitlab</span></a>.</p><p align=\"center\">Main contributor <a href=\"http://gitlab.kingbiotech.cn/wangchenglong\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">wangcl</span></a>.</p></body></html>"))
 

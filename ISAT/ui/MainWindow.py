@@ -351,21 +351,25 @@ class Ui_MainWindow(object):
         self.actionAutoSave.setCheckable(True)
         self.actionAutoSave.setChecked(False)
         self.actionAutoSave.setObjectName("actionAutoSave")
+
         self.actionVideo_segment = QtWidgets.QAction(MainWindow)
         icon32 = QtGui.QIcon()
         icon32.addPixmap(QtGui.QPixmap(":/icon/icons/play-all.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionVideo_segment.setIcon(icon32)
         self.actionVideo_segment.setObjectName("actionVideo_segment")
+
         self.actionVideo_segment_once = QtWidgets.QAction(MainWindow)
         icon33 = QtGui.QIcon()
         icon33.addPixmap(QtGui.QPixmap(":/icon/icons/play-1.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionVideo_segment_once.setIcon(icon33)
         self.actionVideo_segment_once.setObjectName("actionVideo_segment_once")
+
         self.actionVideo_segment_five_times = QtWidgets.QAction(MainWindow)
         icon34 = QtGui.QIcon()
         icon34.addPixmap(QtGui.QPixmap(":/icon/icons/play-5.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionVideo_segment_five_times.setIcon(icon34)
         self.actionVideo_segment_five_times.setObjectName("actionVideo_segment_five_times")
+
         self.actionVideo_to_frames = QtWidgets.QAction(MainWindow)
         icon35 = QtGui.QIcon()
         icon35.addPixmap(QtGui.QPixmap(":/icon/icons/视频_video-two.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)

@@ -913,6 +913,16 @@
     </message>
     <message>
         <location filename="info_dock.py" line="97"/>
+        <source>annotator :</source>
+        <translation>标注人:</translation>
+    </message>
+    <message>
+        <location filename="info_dock.py" line="98"/>
+        <source>inspector :</source>
+        <translation>检查人:</translation>
+    </message>
+    <message>
+        <location filename="info_dock.py" line="99"/>
         <source>note:</source>
         <translation>注释:</translation>
     </message>

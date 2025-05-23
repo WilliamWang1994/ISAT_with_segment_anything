@@ -9,8 +9,8 @@ class InfoDockWidget(QtWidgets.QWidget, Ui_Form):
         super(InfoDockWidget, self).__init__()
         self.setupUi(self)
         self.mainwindow = mainwindow
-
-        self.lineEdit_note.textChanged.connect(self.note_changed)
+        self.Annotator.textChanged.connect(self.note_changed)
+        self.Inspector.textChanged.connect(self.note_changed)
 
     def note_changed(self):
         if self.mainwindow.load_finished:
@@ -21,4 +21,15 @@ class InfoDockWidget(QtWidgets.QWidget, Ui_Form):
             self.label_width.setText('{}'.format(self.mainwindow.current_label.width))
             self.label_height.setText('{}'.format(self.mainwindow.current_label.height))
             self.label_depth.setText('{}'.format(self.mainwindow.current_label.depth))
-            self.lineEdit_note.setText(self.mainwindow.current_label.note)
+            self.json_state.setText('{}'.format(self.mainwindow.current_label.json_state))
+            self.Annotator.setText(self.mainwindow.current_label.annotator)
+            self.Inspector.setText(self.mainwindow.current_label.inspector)
+            if self.mainwindow.current_label.annotator  != '':
+                self.Annotator.setReadOnly(True)
+            else:
+                self.Annotator.setReadOnly(False)
+
+            if self.mainwindow.current_label.inspector  != '':
+                self.Inspector.setReadOnly(True)
+            else:
+                self.Inspector.setReadOnly(False)

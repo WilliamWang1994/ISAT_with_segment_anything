@@ -1022,7 +1022,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             object = polygon.to_object()
             self.current_label.objects.append(object)
 
-        self.current_label.note = self.info_dock_widget.lineEdit_note.text()
+        self.current_label.annotator = self.info_dock_widget.Annotator.text()
+        self.current_label.inspector = self.info_dock_widget.Inspector.text()
         self.current_label.save_annotation()
         # 保存标注文件的同时保存一份isat配置文件
         self.save_cfg(os.path.join(self.label_root, 'isat.yaml'))
@@ -1488,7 +1489,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionOpen_dir.triggered.connect(self.open_dir)
         self.actionSave_dir.triggered.connect(self.save_dir)
         self.actionVideo_segment.triggered.connect(functools.partial(self.seg_video_start, None))
-        self.actionVideo_segment_once.triggered.connect(functools.partial(self.seg_video_start, 1))
+        # TODO 临时把sam2 max_frame_num_to_track 1改为10
+        self.actionVideo_segment_once.triggered.connect(functools.partial(self.seg_video_start, 10))
         self.actionVideo_segment_five_times.triggered.connect(functools.partial(self.seg_video_start, 5))
 
         self.actionPrev.triggered.connect(self.prev_image)

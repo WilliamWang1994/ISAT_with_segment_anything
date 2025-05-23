@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'wangcl'
-__version__ = 'v20250514'
+__version__ = '20250523'

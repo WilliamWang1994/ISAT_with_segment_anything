@@ -1,4 +1,4 @@
-<h1 align='center'>ISAT_with_segment_anything</h1>
+<h1 align='center'>ISAT_for_organoid</h1>
 <h2 align='center'>An Interactive Semi-Automatic Annotation Tool Based on Segment Anything</h2>
 <p align='center'>
     <a href='https://github.com/yatengLG/ISAT_with_segment_anything' target="_blank"><img alt="GitHub forks" src="https://img.shields.io/github/stars/yatengLG/ISAT_with_segment_anything"></a>

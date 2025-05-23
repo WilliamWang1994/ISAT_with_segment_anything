@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author  : LG
-
+import hashlib
+import json
 import os
 from PIL import Image
 import numpy as np
@@ -24,10 +25,14 @@ class Annotation:
     def __init__(self, image_path, label_path):
         img_folder, img_name = os.path.split(image_path)
         self.description = 'ISAT'
+        self.KEY = "@mark"
+        self.SALT = "@@kingmed20250522@@"
         self.img_folder = img_folder
         self.img_name = img_name
         self.label_path = label_path
-        self.note = ''
+        self.annotator = ''
+        self.inspector = ''
+        self.json_state = 'Modified'
 
         image = np.array(Image.open(image_path))
         if image.ndim == 3:
@@ -46,6 +51,9 @@ class Annotation:
         if os.path.exists(self.label_path):
             with open(self.label_path, 'r') as f:
                 dataset = load(f)
+                result, save_mark, computed_mark = self.check_mark(dataset, self.SALT, self.KEY)
+                if result:
+                    self.json_state = 'OK'
                 info = dataset.get('info', {})
                 description = info.get('description', '')
                 if description == 'ISAT':
@@ -61,7 +69,10 @@ class Annotation:
                     depth = info.get('depth', None)
                     if depth is not None:
                         self.depth = depth
-                    self.note = info.get('note', '')
+                    # self.note = info.get('note', '')
+                    self.annotator = info.get('annotator', '')
+                    self.inspector = info.get('inspector', '')
+
                     for obj in objects:
                         category = obj.get('category', 'unknow')
                         group = obj.get('group', 0)
@@ -88,7 +99,8 @@ class Annotation:
         dataset['info']['width'] = self.width
         dataset['info']['height'] = self.height
         dataset['info']['depth'] = self.depth
-        dataset['info']['note'] = self.note
+        dataset['info']['annotator'] = self.annotator
+        dataset['info']['inspector'] = self.inspector
         dataset['objects'] = []
         for obj in self.objects:
             object = {}
@@ -102,5 +114,56 @@ class Annotation:
             object['note'] = obj.note
             dataset['objects'].append(object)
         with open(self.label_path, 'w') as f:
-            dump(dataset, f, indent=4)
+            dump(self.add_mark(dataset, self.SALT, self.KEY), f, indent=4)
         return True
+
+    @staticmethod
+    def get_mark(js_data: dict, salt: str) -> str:
+        js_str = json.dumps(js_data)
+        md5 = hashlib.md5()
+        md5.update(salt.encode("utf-8"))
+        md5.update(js_str.encode("utf-8"))
+        return md5.hexdigest()
+
+    def add_mark(self, js_data: dict, salt: str, key: str) -> dict:
+        '''
+        info:
+            给 js_data 这个 json 对象计算出在不包含摘要时的摘要值
+        params:
+            js_data[dict]: json 对象，可以包含 mark 摘要，也可以不包含
+            salt[str]: 生成摘要时的盐
+            key[str]: 摘要生成后存放在 js_data 中的 key， 只支持1级目录
+
+        return [dict]: 包含摘要值的 json 对象
+        '''
+        result = js_data.copy()
+        if key in result:
+            del result[key]  # 删掉之前的mark
+
+        result[key] = self.get_mark(result, salt)
+        return result
+
+    def check_mark(self, js_data: dict, salt: str, key: str):
+        '''
+        info:
+            检查 js_data 这个 json 对象中存储的摘要值和不包含摘要时的摘要值是否一致
+        params:
+            js_data[dict]: json 对象，不包含摘要值则当成""处理
+            salt[str]: 计算摘要时的盐
+            key[str]: 摘要存放在 js_data 中的 key， 只支持1级目录
+
+        return:
+            result[bool]: 是否一致
+            save_mark[str]: 存在js_data中的摘要值
+            computed_mark[str]: 实际计算出来的摘要值
+        '''
+        save_mark = js_data.get(key, "")
+        if save_mark != "":
+            js_data_remove_mark = js_data.copy()
+            del js_data_remove_mark[key]
+        else:
+            js_data_remove_mark = js_data
+
+        computed_mark = self.get_mark(js_data_remove_mark, salt)
+
+        return save_mark == computed_mark, save_mark, computed_mark
