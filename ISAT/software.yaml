@@ -8,7 +8,7 @@ software:
   create_mode_invisible_polygon: true
   language: en
   mask_alpha: 1.0
-  scale_size: 8  # size = 2*scale_size - 1
+  scale_size: 8
   show_edge: false
   show_prompt: false
   use_bfloat16: true

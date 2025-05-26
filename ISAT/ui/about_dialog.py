@@ -82,6 +82,9 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "about"))
-        self.label_3.setText(_translate("Dialog", "ISAT with Segment anything"))
-        self.label_5.setText(_translate("Dialog", "<html><head/><body><p align=\"center\">Open source on <a href=\"http://gitlab.kingbiotech.cn/ai/isat_with_segment_anything\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">Gitlab</span></a>.</p><p align=\"center\">Main contributor <a href=\"http://gitlab.kingbiotech.cn/wangchenglong\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">wangcl</span></a>.</p></body></html>"))
+        self.label_3.setText(_translate("Dialog", "Kingmed annotation tool"))
+        self.label_5.setText(_translate("Dialog", "<html><head/><body><p align=\"center\">code on <a href=\"http://gitlab.kingbiotech.cn/ai/isat_with_segment_anything\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">Gitlab</span></a>.</p>"
+                                                  "<p align=\"center\">Main contributor <a href=\"http://gitlab.kingbiotech.cn/wangchenglong\"><span style=\" font-weight:600; text-decoration: underline; color:#0000ff;\">wangcl</span></a>.</p>"
+                                                  "<p align=\"center\">contact contributor <span style=\" font-weight:600; color:#000000;\">wangchenglong@kingmedpharm.com</span></p>"
+                                                  "</body></html>"))
 
