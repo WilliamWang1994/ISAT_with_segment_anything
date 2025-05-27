@@ -223,7 +223,8 @@ class SegAnyVideoThread(QThread):
             current_label = Annotation(current_file_path, current_label_path)
 
             current_label.load_annotation()
-
+            # if current_label.json_state != 'OK':
+            #     QtWidgets.QMessageBox.warning(self, 'Warning', '标注文件加载失败：{}'.format(current_label.json_state))
             group_object_dict = {}
 
             for object in current_label.objects:
@@ -1101,6 +1102,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.current_label = Annotation(file_path, label_path)
                 # 载入数据
                 self.current_label.load_annotation()
+                if self.current_label.json_state != 'OK':
+                    QtWidgets.QMessageBox.warning(self, 'Warning',
+                                                  '标注文件加载失败：{}'.format(self.current_label.json_state))
 
                 for object in self.current_label.objects:
                     try:
@@ -1490,7 +1494,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionSave_dir.triggered.connect(self.save_dir)
         self.actionVideo_segment.triggered.connect(functools.partial(self.seg_video_start, None))
         # TODO 临时把sam2 max_frame_num_to_track 1改为10
-        self.actionVideo_segment_once.triggered.connect(functools.partial(self.seg_video_start, 10))
+        self.actionVideo_segment_once.triggered.connect(functools.partial(self.seg_video_start, 1))
         self.actionVideo_segment_five_times.triggered.connect(functools.partial(self.seg_video_start, 5))
 
         self.actionPrev.triggered.connect(self.prev_image)

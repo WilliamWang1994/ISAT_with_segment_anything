@@ -32,7 +32,7 @@ class Annotation:
         self.label_path = label_path
         self.annotator = ''
         self.inspector = ''
-        self.json_state = 'Modified'
+        self.json_state = 'OK'
 
         image = np.array(Image.open(image_path))
         if image.ndim == 3:
@@ -52,8 +52,9 @@ class Annotation:
             with open(self.label_path, 'r') as f:
                 dataset = load(f)
                 result, save_mark, computed_mark = self.check_mark(dataset, self.SALT, self.KEY)
-                if result:
-                    self.json_state = 'OK'
+                if not result:
+                    self.json_state = '标注文件存在问题，请联系管理员'
+                    return self
                 info = dataset.get('info', {})
                 description = info.get('description', '')
                 if description == 'ISAT':
@@ -91,6 +92,9 @@ class Annotation:
         return self
 
     def save_annotation(self):
+        if self.json_state != 'OK':
+            print('Warning: The json file {} is modified, please contact monitor.'.format(self.label_path))
+            return False
         dataset = {}
         dataset['info'] = {}
         dataset['info']['description'] = self.description
