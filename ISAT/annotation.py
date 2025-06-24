@@ -5,8 +5,10 @@ import json
 import os
 from PIL import Image
 import numpy as np
-from json import load, dump
+from json import loads, dumps
 from typing import List
+from ISAT.loader.kmcrypt.encry import encry
+from ISAT.loader.kmcrypt.decry import decry
 
 
 class Object:
@@ -49,8 +51,19 @@ class Annotation:
 
     def load_annotation(self):
         if os.path.exists(self.label_path):
-            with open(self.label_path, 'r') as f:
-                dataset = load(f)
+            file_format = 'cry'
+            with open(self.label_path, 'rb') as f:
+                data = f.read()
+                try:
+                    out_data, data_len = decry(data, '', '')
+                    dataset = loads(out_data[:data_len].decode("utf-8"))
+                except:
+                    try:
+                        dataset = loads(data)
+                        file_format = 'json'
+                    except Exception as e:
+                        print('read json error')
+                        print(e)
                 result, save_mark, computed_mark = self.check_mark(dataset, self.SALT, self.KEY)
                 if not result:
                     self.json_state = '标注文件存在问题，请联系管理员'
@@ -89,6 +102,8 @@ class Annotation:
                 else:
                     # 不再支持直接打开labelme标注文件（在菜单栏-tool-convert中提供了isat<->labelme相互转换工具）
                     print('Warning: The file {} is not a ISAT json.'.format(self.label_path))
+            if file_format == 'json':
+                self.save_annotation()
         return self
 
     def save_annotation(self):
@@ -117,8 +132,15 @@ class Annotation:
             object['iscrowd'] = obj.iscrowd
             object['note'] = obj.note
             dataset['objects'].append(object)
-        with open(self.label_path, 'w') as f:
-            dump(self.add_mark(dataset, self.SALT, self.KEY), f, indent=4)
+        with open(self.label_path, 'wb') as f:
+            a = dumps(self.add_mark(dataset, self.SALT, self.KEY), indent=4)
+            magic, version, data_len, output_len, output = encry(a.encode("utf-8"), '', '')
+            f.write(magic)
+            f.write(version.to_bytes(4, byteorder='little'))
+            f.write(data_len.to_bytes(4, 'little'))
+            f.write(output_len.to_bytes(4, 'little'))
+            f.write(output)
+
         return True
 
     @staticmethod

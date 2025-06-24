@@ -3,6 +3,6 @@
 ISAT/checkpoints/sam_hq_vit_h.pth
 ISAT/checkpoints/mobile_sam.pt
 ISAT/checkpoints/*.pth
+ISAT/checkpoints/*.pt
 example/
-.idea/*
-.idea
+.idea/
